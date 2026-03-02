@@ -1,0 +1,62 @@
+﻿@using UnidadResidencialProject.Components.Pages.Acceso.Components
+
+<div class="tabla-wrap">
+    <table class="acceso-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Tipo</th>
+                <th>Nombre</th>
+                <th>Documento</th>
+                <th>Unidad</th>
+                <th>Portería</th>
+                <th>Ingreso</th>
+                <th>Salida</th>
+                <th>Estado</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Ingresos)
+            {
+                <tr>
+                    <td class="td-id">@item.Id</td>
+                    <td><span class="tipo-tag @item.Tipo.ToLower()">@item.Tipo</span></td>
+                    <td class="td-nombre">@item.NombrePersona</td>
+                    <td class="td-mono">@item.Documento</td>
+                    <td>@item.Unidad</td>
+                    <td>@item.Porteria</td>
+                    <td class="td-mono">@item.FechaHoraIngreso</td>
+                    <td class="td-mono">@(item.FechaHoraSalida ?? "—")</td>
+                    <td>
+                        @if (item.FechaHoraSalida == null)
+                        {
+                            <span class="estado-tag dentro">Dentro</span>
+                        }
+                        else
+                        {
+                            <span class="estado-tag salio">Salió</span>
+                        }
+                    </td>
+                    <td>
+                        @if (item.FechaHoraSalida == null)
+                        {
+                            <button class="btn-salida" @onclick="@(() => OnRegistrarSalida.InvokeAsync(item.Id))">
+                                Registrar Salida
+                            </button>
+                        }
+                        else
+                        {
+                            <span class="td-ok">✓</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter] public List<Acceso.IngresoItem> Ingresos { get; set; } = new();
+    [Parameter] public EventCallback<int> OnRegistrarSalida { get; set; }
+}

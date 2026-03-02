@@ -1,0 +1,124 @@
+﻿.tabla-wrap {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    overflow-x: auto;
+}
+
+.acceso-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .8rem;
+}
+
+    .acceso-table thead {
+        background: #F9FAFB;
+    }
+
+    .acceso-table th {
+        text-align: left;
+        padding: .75rem 1rem;
+        font-size: .68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: #9CA3AF;
+        border-bottom: 1px solid #E5E7EB;
+        white-space: nowrap;
+    }
+
+    .acceso-table td {
+        padding: .75rem 1rem;
+        color: #4B5563;
+        border-bottom: 1px solid #F3F4F6;
+        vertical-align: middle;
+    }
+
+    .acceso-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .acceso-table tbody tr:hover td {
+        background: #F9FAFB;
+    }
+
+.td-id {
+    color: #9CA3AF;
+    font-size: .72rem;
+}
+
+.td-mono {
+    font-family: 'DM Mono', monospace;
+    font-size: .76rem;
+}
+
+.td-nombre {
+    font-weight: 600;
+    color: #111827;
+}
+
+.td-ok {
+    color: #16A34A;
+    font-weight: 700;
+}
+
+.tipo-tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 99px;
+    font-size: .68rem;
+    font-weight: 600;
+}
+
+    .tipo-tag.residente {
+        background: #EFF6FF;
+        color: #2563EB;
+    }
+
+    .tipo-tag.visitante {
+        background: #FFFBEB;
+        color: #D97706;
+    }
+
+    .tipo-tag.proveedor {
+        background: #F5F3FF;
+        color: #7C3AED;
+    }
+
+.estado-tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 99px;
+    font-size: .68rem;
+    font-weight: 600;
+}
+
+    .estado-tag.dentro {
+        background: #FEF3C7;
+        color: #D97706;
+    }
+
+    .estado-tag.salio {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+.btn-salida {
+    padding: .3rem .75rem;
+    border-radius: 6px;
+    border: 1px solid #E5E7EB;
+    background: #F9FAFB;
+    font-size: .72rem;
+    font-weight: 600;
+    color: #DC2626;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+    white-space: nowrap;
+}
+
+    .btn-salida:hover {
+        background: #FEF2F2;
+        border-color: #FCA5A5;
+    }

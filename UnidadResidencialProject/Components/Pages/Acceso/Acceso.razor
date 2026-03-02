@@ -1,0 +1,114 @@
+﻿@page "/ingresos"
+@using UnidadResidencialProject.Components.Pages.Acceso.Components
+@using UnidadResidencialProject.Components.Pages.Dashboard.Components
+
+
+<PageTitle>Control de Acceso — Conjunto Residencial</PageTitle>
+
+<div class="crm-shell">
+
+    <Sidebar />
+
+    <main class="main-content">
+
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Control de Acceso</h1>
+                <span class="page-breadcrumb">Registro de ingresos y salidas · Hoy, @DateTime.Now.ToString("dddd d 'de' MMMM yyyy", new System.Globalization.CultureInfo("es-CO"))</span>
+            </div>
+            <div class="topbar-right">
+                <button class="btn-primary" @onclick="AbrirFormulario">
+                    + Registrar Ingreso
+                </button>
+            </div>
+        </header>
+
+        <div class="page-body">
+
+            <div class="stats-row">
+                <div class="stat-chip blue">
+                    <span class="stat-num">@_ingresos.Count</span>
+                    <span class="stat-lbl">Total hoy</span>
+                </div>
+                <div class="stat-chip green">
+                    <span class="stat-num">@_ingresos.Count(i => i.Tipo == "Residente")</span>
+                    <span class="stat-lbl">Residentes</span>
+                </div>
+                <div class="stat-chip amber">
+                    <span class="stat-num">@_ingresos.Count(i => i.Tipo == "Visitante")</span>
+                    <span class="stat-lbl">Visitantes</span>
+                </div>
+                <div class="stat-chip purple">
+                    <span class="stat-num">@_ingresos.Count(i => i.Tipo == "Proveedor")</span>
+                    <span class="stat-lbl">Proveedores</span>
+                </div>
+                <div class="stat-chip red">
+                    <span class="stat-num">@_ingresos.Count(i => i.FechaHoraSalida == null)</span>
+                    <span class="stat-lbl">Dentro ahora</span>
+                </div>
+            </div>
+
+            <AccesoFiltros TipoSeleccionado="@_filtroTipo"
+                           OnFiltroChanged="@((t) => { _filtroTipo = t; })" />
+
+            <AccesoTabla Ingresos="@IngresosFiltrados"
+                         OnRegistrarSalida="@RegistrarSalida" />
+
+        </div>
+
+        @if (_mostrarFormulario)
+        {
+            <AccesoFormulario OnGuardar="@GuardarIngreso"
+                              OnCancelar="@(() => _mostrarFormulario = false)" />
+        }
+
+    </main>
+</div>
+
+@code {
+    private bool _mostrarFormulario = false;
+    private string _filtroTipo = "Todos";
+
+    private List<IngresoItem> _ingresos = new()
+    {
+        new(1,  "Residente", "Juan Pérez",      "80.123.456", "10:42 AM", null,       "Apto 205", "Portería Principal"),
+        new(2,  "Visitante", "Luis Morales",     "72.341.890", "10:38 AM", null,       "Apto 302", "Portería Principal"),
+        new(3,  "Residente", "Sandra Gil",       "52.678.123", "10:15 AM", null,       "Apto 410", "Portería Lateral"),
+        new(4,  "Proveedor", "Técnico ETB",      "91.234.567", "09:55 AM", null,       "—",        "Portería Principal"),
+        new(5,  "Residente", "Carlos Ríos",      "68.901.234", "09:30 AM", "09:50 AM", "Apto 501", "Portería Principal"),
+        new(6,  "Visitante", "María Suárez",     "43.567.890", "09:12 AM", "10:00 AM", "Apto 104", "Portería Lateral"),
+        new(7,  "Proveedor", "Jardinería Verde", "98.765.432", "08:50 AM", "12:00 PM", "—",        "Portería Principal"),
+        new(8,  "Residente", "Ana Torres",       "31.456.789", "08:30 AM", "08:45 AM", "Apto 104", "Portería Principal"),
+        new(9,  "Visitante", "Pedro Gómez",      "55.234.678", "08:10 AM", "09:30 AM", "Apto 207", "Portería Lateral"),
+        new(10, "Residente", "Laura Martínez",   "62.890.345", "07:55 AM", "08:20 AM", "Apto 308", "Portería Principal"),
+    };
+
+    private List<IngresoItem> IngresosFiltrados =>
+        _filtroTipo == "Todos"
+            ? _ingresos
+            : _ingresos.Where(i => i.Tipo == _filtroTipo).ToList();
+
+    private void AbrirFormulario() => _mostrarFormulario = true;
+
+    private void GuardarIngreso(IngresoItem nuevo)
+    {
+        nuevo = nuevo with { Id = _ingresos.Count + 1 };
+        _ingresos.Insert(0, nuevo);
+        _mostrarFormulario = false;
+    }
+
+    private void RegistrarSalida(int id)
+    {
+        var item = _ingresos.FirstOrDefault(i => i.Id == id);
+        if (item != null)
+        {
+            var idx = _ingresos.IndexOf(item);
+            _ingresos[idx] = item with { FechaHoraSalida = DateTime.Now.ToString("hh:mm tt") };
+        }
+    }
+
+    public record IngresoItem(
+        int Id, string Tipo, string NombrePersona, string Documento,
+        string FechaHoraIngreso, string? FechaHoraSalida,
+        string Unidad, string Porteria);
+}

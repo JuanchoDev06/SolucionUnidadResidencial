@@ -1,0 +1,25 @@
+﻿@using UnidadResidencialProject.Components.Pages
+
+<div class="filtros-bar">
+    <div class="filtros-left">
+        <span class="filtros-label">Filtrar por tipo:</span>
+        @foreach (var tipo in _tipos)
+        {
+            <button class="filtro-btn @(TipoSeleccionado == tipo ? "active" : "")"
+                    @onclick="@(() => OnFiltroChanged.InvokeAsync(tipo))">
+                <span class="filtro-dot @tipo.ToLower()"></span>
+                @tipo
+            </button>
+        }
+    </div>
+    <div class="filtros-right">
+        <input type="text" placeholder="🔍  Buscar nombre o documento…" class="search-input" />
+    </div>
+</div>
+
+@code {
+    [Parameter] public string TipoSeleccionado { get; set; } = "Todos";
+    [Parameter] public EventCallback<string> OnFiltroChanged { get; set; }
+
+    private List<string> _tipos = new() { "Todos", "Residente", "Visitante", "Proveedor" };
+}

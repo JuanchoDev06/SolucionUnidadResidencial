@@ -1,0 +1,78 @@
+﻿@using UnidadResidencialProject.Components.Pages.Acceso.Components
+
+<div class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2 class="modal-title">Registrar Nuevo Ingreso</h2>
+            <button class="modal-close" @onclick="OnCancelar">✕</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Tipo de Ingreso</label>
+                    <select class="form-control" @bind="_tipo">
+                        <option value="Residente">Residente</option>
+                        <option value="Visitante">Visitante</option>
+                        <option value="Proveedor">Proveedor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Portería</label>
+                    <select class="form-control" @bind="_porteria">
+                        <option>Portería Principal</option>
+                        <option>Portería Lateral</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Nombre Completo</label>
+                    <input class="form-control" type="text" placeholder="Ej: Juan Pérez" @bind="_nombre" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Documento</label>
+                    <input class="form-control" type="text" placeholder="Ej: 80.123.456" @bind="_documento" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Unidad / Apartamento</label>
+                    <input class="form-control" type="text" placeholder="Ej: Apto 302" @bind="_unidad" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Hora de Ingreso</label>
+                    <input class="form-control" type="text" value="@DateTime.Now.ToString("hh:mm tt")" readonly />
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-cancel" @onclick="OnCancelar">Cancelar</button>
+            <button class="btn-save" @onclick="Guardar">Guardar Ingreso</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<Acceso.IngresoItem> OnGuardar { get; set; }
+    [Parameter] public EventCallback OnCancelar { get; set; }
+
+    private string _tipo = "Residente";
+    private string _porteria = "Portería Principal";
+    private string _nombre = "";
+    private string _documento = "";
+    private string _unidad = "";
+
+    private async Task Guardar()
+    {
+        var nuevo = new Acceso.IngresoItem(
+            0, _tipo, _nombre, _documento,
+            DateTime.Now.ToString("hh:mm tt"), null,
+            string.IsNullOrWhiteSpace(_unidad) ? "—" : _unidad,
+            _porteria);
+        await OnGuardar.InvokeAsync(nuevo);
+    }
+}

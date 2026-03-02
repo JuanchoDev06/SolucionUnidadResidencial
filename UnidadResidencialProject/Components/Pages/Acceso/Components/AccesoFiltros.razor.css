@@ -1,0 +1,96 @@
+﻿.filtros-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: .75rem 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.filtros-left {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+
+.filtros-label {
+    font-size: .75rem;
+    font-weight: 600;
+    color: #9CA3AF;
+    margin-right: .25rem;
+}
+
+.filtro-btn {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .4rem .85rem;
+    border-radius: 99px;
+    border: 1px solid #E5E7EB;
+    background: #F9FAFB;
+    font-size: .78rem;
+    font-weight: 500;
+    color: #4B5563;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+}
+
+    .filtro-btn:hover {
+        border-color: #2563EB;
+        color: #2563EB;
+    }
+
+    .filtro-btn.active {
+        background: #2563EB;
+        color: #fff;
+        border-color: #2563EB;
+    }
+
+.filtro-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+}
+
+    .filtro-dot.todos {
+        background: #9CA3AF;
+    }
+
+    .filtro-dot.residente {
+        background: #2563EB;
+    }
+
+    .filtro-dot.visitante {
+        background: #D97706;
+    }
+
+    .filtro-dot.proveedor {
+        background: #7C3AED;
+    }
+
+.filtro-btn.active .filtro-dot {
+    background: rgba(255,255,255,.7);
+}
+
+.search-input {
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: .4rem .85rem;
+    font-size: .8rem;
+    font-family: inherit;
+    color: #111827;
+    outline: none;
+    width: 240px;
+    background: #F9FAFB;
+}
+
+    .search-input:focus {
+        border-color: #2563EB;
+        background: #fff;
+    }
