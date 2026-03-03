@@ -68,7 +68,7 @@ Registro y seguimiento de todos los ingresos y salidas del conjunto. Diferencia 
 
 ---
 
-### 🔜 Parqueadero
+### ✅ Parqueadero
 Mapa visual de cupos en tiempo real, registro de visitantes con placa e historial de uso del parqueadero.
 
 **Entidades BD relacionadas:** `Parqueadero`, `ParqueaderoVisitante`, `Ingreso`
@@ -179,7 +179,7 @@ Presiona `F5` en Visual Studio o haz clic en el botón **Ejecutar**. El proyecto
 |---|---|---|---|
 | Dashboard | ✅ Completo | ✅ Datos simulados | ⏳ Pendiente |
 | Control de Acceso | ✅ Completo | ✅ Datos simulados | ⏳ Pendiente |
-| Parqueadero | 🔜 En desarrollo | ⏳ Pendiente | ⏳ Pendiente |
+| Parqueadero | ✅ Completo | ✅ Datos simulados | ⏳ Pendiente |
 | Mantenimiento | 🔜 Pendiente | ⏳ Pendiente | ⏳ Pendiente |
 | Mensajería | 🔜 Pendiente | ⏳ Pendiente | ⏳ Pendiente |
 | Reservas | 🔜 Pendiente | ⏳ Pendiente | ⏳ Pendiente |
