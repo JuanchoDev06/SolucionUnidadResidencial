@@ -142,7 +142,7 @@ El sistema utiliza **SQL Server**
 
 **1. Clonar el repositorio**
 ```bash
-git clone https://github.com/tu-usuario/UnidadResidencialProject.git
+git clone https://github.com/JuanchoDev06/SolucionUnidadResidencial.git
 ```
 
 **2. Abrir en Visual Studio**
