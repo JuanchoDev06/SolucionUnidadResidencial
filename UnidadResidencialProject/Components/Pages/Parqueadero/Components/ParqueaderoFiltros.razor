@@ -1,0 +1,27 @@
+﻿<div class="filtros-bar">
+    <div class="filtros-left">
+        <span class="filtros-label">Mostrar:</span>
+        @foreach (var f in _filtros)
+        {
+            <button class="filtro-btn @(FiltroActivo == f.Key ? "active " + f.Key.ToLower() : "")"
+                    @onclick="@(() => OnFiltroChanged.InvokeAsync(f.Key))">
+                <span class="fdot @f.Key.ToLower()"></span>
+                @f.Label
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string FiltroActivo { get; set; } = "Todos";
+    [Parameter] public EventCallback<string> OnFiltroChanged { get; set; }
+
+    private record FiltroOption(string Key, string Label);
+    private List<FiltroOption> _filtros = new()
+    {
+        new("Todos",      "Todos los cupos"),
+        new("Disponible", "Disponibles"),
+        new("Residente",  "Residentes"),
+        new("Visitante",  "Visitantes"),
+    };
+}

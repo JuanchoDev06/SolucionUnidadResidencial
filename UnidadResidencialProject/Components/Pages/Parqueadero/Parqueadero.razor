@@ -1,0 +1,191 @@
+﻿@page "/parqueadero"
+@using UnidadResidencialProject.Components.Pages.Parqueadero.Components
+
+<PageTitle>Parqueadero — Conjunto Residencial</PageTitle>
+
+<div class="crm-shell">
+
+    <Sidebar />
+
+    <main class="main-content">
+
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Parqueadero</h1>
+                <span class="page-breadcrumb">Gestión de cupos · Planta 1 y Planta 2</span>
+            </div>
+            <div class="topbar-right">
+                <button class="btn-secondary" @onclick="() => _mostrarFormResidente = true">
+                    ▦ Asignar Cupo Residente
+                </button>
+                <button class="btn-primary" @onclick="() => _mostrarFormVisitante = true">
+                    + Registrar Visitante
+                </button>
+            </div>
+        </header>
+
+        <div class="page-body">
+
+            <!-- Stats -->
+            <div class="stats-row">
+                <div class="stat-chip green">
+                    <span class="stat-num">@_cupos.Count(c => c.Estado == "libre")</span>
+                    <span class="stat-lbl">Disponibles</span>
+                </div>
+                <div class="stat-chip blue">
+                    <span class="stat-num">@_cupos.Count(c => c.Estado == "residente")</span>
+                    <span class="stat-lbl">Residentes</span>
+                </div>
+                <div class="stat-chip red">
+                    <span class="stat-num">@_cupos.Count(c => c.Estado == "visitante")</span>
+                    <span class="stat-lbl">Visitantes</span>
+                </div>
+                <div class="stat-chip gray">
+                    <span class="stat-num">@_cupos.Count</span>
+                    <span class="stat-lbl">Total Cupos</span>
+                </div>
+                <div class="stat-chip amber">
+                    <span class="stat-num">@_historial.Count(h => h.FechaHoraSalida == null)</span>
+                    <span class="stat-lbl">Visitantes activos</span>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <ParqueaderoFiltros FiltroActivo="@_filtro"
+                                OnFiltroChanged="HandleFiltroChanged" />
+
+            <!-- Mapa -->
+            <ParqueaderoMapa Cupos="@CuposFiltrados"
+                             OnLiberarCupo="@LiberarCupo"
+                             OnVerDetalle="@AbrirDetalle" />
+
+            <!-- Historial -->
+            <ParqueaderoHistorial Historial="@_historial"
+                                  OnRegistrarSalida="@RegistrarSalidaVisitante" />
+
+        </div>
+
+        <!-- Modales -->
+        @if (_mostrarFormVisitante)
+        {
+            <ParqueaderoFormVisitante CuposDisponibles="@(_cupos.Where(c => c.Estado == "libre").ToList())"
+                                      OnGuardar="@GuardarVisitante"
+                                      OnCancelar="@(() => _mostrarFormVisitante = false)" />
+        }
+
+        @if (_mostrarFormResidente)
+        {
+            <ParqueaderoFormResidente CuposDisponibles="@(_cupos.Where(c => c.Estado == "libre").ToList())"
+                                      OnGuardar="@GuardarAsignacionResidente"
+                                      OnCancelar="@(() => _mostrarFormResidente = false)" />
+        }
+
+    </main>
+</div>
+
+@code {
+    private bool _mostrarFormVisitante  = false;
+    private bool _mostrarFormResidente  = false;
+    private string _filtro = "Todos";
+
+    // ── Modelo ────────────────────────────────────────────
+    public record CupoItem(int Id, string Tipo, int Numero,
+                           string Estado, string? Residente, string? Placa);
+
+    public record HistorialItem(int Id, int CupoId, string Placa,
+                                string NombreVisitante, string Unidad,
+                                string FechaHoraIngreso, string? FechaHoraSalida);
+
+    // ── Datos simulados — Cupos ───────────────────────────
+    private List<CupoItem> _cupos = Enumerable.Range(1, 40).Select(i =>
+    {
+        var rng = new Random(i * 7);
+        var r   = rng.NextDouble();
+        if (i <= 28)
+        {
+            if (r < 0.65) return new CupoItem(i, "Cubierto", i, "residente", $"Residente Apto {100 + i}", $"ABC-{100 + i:D3}");
+            if (r < 0.80) return new CupoItem(i, "Cubierto", i, "visitante", null, $"XYZ-{200 + i:D3}");
+            return new CupoItem(i, "Cubierto", i, "libre", null, null);
+        }
+        else
+        {
+            if (r < 0.40) return new CupoItem(i, "Descubierto", i, "residente", $"Residente Apto {200 + i}", $"DEF-{300 + i:D3}");
+            return new CupoItem(i, "Descubierto", i, "libre", null, null);
+        }
+    }).ToList();
+
+    // ── Datos simulados — Historial ───────────────────────
+    private List<HistorialItem> _historial = new()
+    {
+        new(1,  5,  "XYZ-201", "Luis Morales",   "Apto 302", "10:38 AM", null),
+        new(2,  12, "KLM-456", "Pedro Suárez",   "Apto 104", "09:55 AM", null),
+        new(3,  18, "QRS-789", "Ana Gómez",      "Apto 207", "09:12 AM", "10:30 AM"),
+        new(4,  22, "TUV-321", "Carlos Díaz",    "Apto 501", "08:50 AM", "09:40 AM"),
+        new(5,  7,  "WXY-654", "Sofía Herrera",  "Apto 410", "08:20 AM", "11:00 AM"),
+    };
+
+    // ── Computed ──────────────────────────────────────────
+    private List<CupoItem> CuposFiltrados => _filtro switch
+    {
+        "Disponible" => _cupos.Where(c => c.Estado == "libre").ToList(),
+        "Residente"  => _cupos.Where(c => c.Estado == "residente").ToList(),
+        "Visitante"  => _cupos.Where(c => c.Estado == "visitante").ToList(),
+        _            => _cupos
+    };
+
+    // ── Acciones ──────────────────────────────────────────
+    private void LiberarCupo(int id)
+    {
+        var idx = _cupos.FindIndex(c => c.Id == id);
+        if (idx >= 0)
+            _cupos[idx] = _cupos[idx] with { Estado = "libre", Residente = null, Placa = null };
+    }
+
+    private void AbrirDetalle(int id) { /* detalle futuro */ }
+
+    private void GuardarVisitante((int CupoId, string Placa, string Nombre, string Unidad) datos)
+    {
+        var idx = _cupos.FindIndex(c => c.Id == datos.CupoId);
+        if (idx >= 0)
+            _cupos[idx] = _cupos[idx] with { Estado = "visitante", Placa = datos.Placa };
+
+        _historial.Insert(0, new HistorialItem(
+            _historial.Count + 1, datos.CupoId, datos.Placa,
+            datos.Nombre, datos.Unidad,
+            DateTime.Now.ToString("hh:mm tt"), null));
+
+        _mostrarFormVisitante = false;
+    }
+
+    private void GuardarAsignacionResidente((int CupoId, string Residente, string Placa) datos)
+    {
+        var idx = _cupos.FindIndex(c => c.Id == datos.CupoId);
+        if (idx >= 0)
+            _cupos[idx] = _cupos[idx] with
+            {
+                Estado    = "residente",
+                Residente = datos.Residente,
+                Placa     = datos.Placa
+            };
+        _mostrarFormResidente = false;
+    }
+
+    private void RegistrarSalidaVisitante(int id)
+    {
+        var idx = _historial.FindIndex(h => h.Id == id);
+        if (idx >= 0)
+        {
+            var cupoId = _historial[idx].CupoId;
+            _historial[idx] = _historial[idx] with
+            {
+                FechaHoraSalida = DateTime.Now.ToString("hh:mm tt")
+            };
+            LiberarCupo(cupoId);
+        }
+    }
+
+    private void HandleFiltroChanged(string filtro)
+    {
+        _filtro = filtro;
+    }
+}

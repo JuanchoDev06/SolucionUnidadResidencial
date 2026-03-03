@@ -1,0 +1,65 @@
+﻿@using UnidadResidencialProject.Components.Pages.Parqueadero
+
+<div class="historial-panel">
+    <div class="panel-header">
+        <h2 class="panel-title">Historial de Visitantes</h2>
+        <span class="panel-sub">@Historial.Count(h => h.FechaHoraSalida == null) visitantes actualmente dentro</span>
+    </div>
+    <div class="tabla-wrap">
+        <table class="hist-table">
+            <thead>
+                <tr>
+                    <th>Cupo</th>
+                    <th>Placa</th>
+                    <th>Visitante</th>
+                    <th>Unidad visitada</th>
+                    <th>Ingreso</th>
+                    <th>Salida</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var h in Historial)
+                {
+                    <tr>
+                        <td class="td-mono">#@h.CupoId</td>
+                        <td><span class="placa-tag">@h.Placa</span></td>
+                        <td class="td-nombre">@h.NombreVisitante</td>
+                        <td>@h.Unidad</td>
+                        <td class="td-mono">@h.FechaHoraIngreso</td>
+                        <td class="td-mono">@(h.FechaHoraSalida ?? "—")</td>
+                        <td>
+                            @if (h.FechaHoraSalida == null)
+                            {
+                                <span class="estado-tag dentro">Dentro</span>
+                            }
+                            else
+                            {
+                                <span class="estado-tag salio">Salió</span>
+                            }
+                        </td>
+                        <td>
+                            @if (h.FechaHoraSalida == null)
+                            {
+                                <button class="btn-salida"
+                                        @onclick="@(() => OnRegistrarSalida.InvokeAsync(h.Id))">
+                                    Registrar Salida
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="td-ok">✓</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<Parqueadero.HistorialItem> Historial { get; set; } = new();
+    [Parameter] public EventCallback<int> OnRegistrarSalida { get; set; }
+}

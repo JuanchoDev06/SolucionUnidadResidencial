@@ -1,0 +1,71 @@
+﻿@using UnidadResidencialProject.Components.Pages.Parqueadero
+
+<div class="mapa-panel">
+    <div class="mapa-header">
+        <div class="mapa-titulo-wrap">
+            <h2 class="mapa-titulo">Mapa de Cupos</h2>
+            <span class="mapa-sub">Haz clic en un cupo ocupado para liberarlo</span>
+        </div>
+        <div class="mapa-leyenda">
+            <span class="ley-item"><span class="ley-dot libre"></span> Disponible</span>
+            <span class="ley-item"><span class="ley-dot residente"></span> Residente</span>
+            <span class="ley-item"><span class="ley-dot visitante"></span> Visitante</span>
+        </div>
+    </div>
+
+    <div class="mapa-seccion-label">🏠 Cubiertos (1–28)</div>
+    <div class="cupos-grid">
+        @foreach (var cupo in Cupos.Where(c => c.Tipo == "Cubierto"))
+        {
+            <div class="cupo @cupo.Estado"
+                 title="@GetTooltip(cupo)"
+                 @onclick="@(() => HandleClick(cupo))">
+                <span class="cupo-num">@cupo.Numero</span>
+                @if (cupo.Estado == "residente")
+                {
+                    <span class="cupo-placa">@cupo.Placa</span>
+                }
+                else if (cupo.Estado == "visitante")
+                {
+                    <span class="cupo-placa vis">@cupo.Placa</span>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="mapa-seccion-label" style="margin-top:1rem">🌤️ Descubiertos (29–40)</div>
+    <div class="cupos-grid">
+        @foreach (var cupo in Cupos.Where(c => c.Tipo == "Descubierto"))
+        {
+            <div class="cupo @cupo.Estado"
+                 title="@GetTooltip(cupo)"
+                 @onclick="@(() => HandleClick(cupo))">
+                <span class="cupo-num">@cupo.Numero</span>
+                @if (cupo.Estado != "libre")
+                {
+                    <span class="cupo-placa @(cupo.Estado == "visitante" ? "vis" : "")">@cupo.Placa</span>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<Parqueadero.CupoItem> Cupos { get; set; } = new();
+    [Parameter] public EventCallback<int> OnLiberarCupo { get; set; }
+    [Parameter] public EventCallback<int> OnVerDetalle { get; set; }
+
+    private void HandleClick(Parqueadero.CupoItem cupo)
+    {
+        if (cupo.Estado != "libre")
+            OnLiberarCupo.InvokeAsync(cupo.Id);
+    }
+
+    private string GetTooltip(Parqueadero.CupoItem cupo) => cupo.Estado switch
+    {
+        "libre" => $"Cupo {cupo.Numero} — Disponible",
+        "residente" => $"Cupo {cupo.Numero} · {cupo.Residente} · {cupo.Placa}",
+        "visitante" => $"Cupo {cupo.Numero} · Visitante · {cupo.Placa}",
+        _ => ""
+    };
+}

@@ -1,0 +1,59 @@
+﻿@using UnidadResidencialProject.Components.Pages.Parqueadero
+
+<div class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2 class="modal-title">Registrar Visitante</h2>
+            <button class="modal-close" @onclick="OnCancelar">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Nombre del Visitante</label>
+                    <input class="form-control" type="text" placeholder="Ej: Luis Morales" @bind="_nombre" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Placa del Vehículo</label>
+                    <input class="form-control" type="text" placeholder="Ej: XYZ-987" @bind="_placa" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Unidad que visita</label>
+                    <input class="form-control" type="text" placeholder="Ej: Apto 302" @bind="_unidad" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Asignar Cupo</label>
+                    <select class="form-control" @bind="_cupoId">
+                        <option value="0">— Seleccionar cupo —</option>
+                        @foreach (var c in CuposDisponibles)
+                        {
+                            <option value="@c.Id">Cupo @c.Numero — @c.Tipo</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" @onclick="OnCancelar">Cancelar</button>
+            <button class="btn-save" @onclick="Guardar">Registrar Ingreso</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<Parqueadero.CupoItem> CuposDisponibles { get; set; } = new();
+    [Parameter] public EventCallback<(int, string, string, string)> OnGuardar { get; set; }
+    [Parameter] public EventCallback OnCancelar { get; set; }
+
+    private string _nombre = "";
+    private string _placa = "";
+    private string _unidad = "";
+    private int _cupoId = 0;
+
+    private async Task Guardar()
+    {
+        if (_cupoId > 0 && !string.IsNullOrWhiteSpace(_placa))
+            await OnGuardar.InvokeAsync((_cupoId, _placa.ToUpper(), _nombre, _unidad));
+    }
+}
