@@ -1,0 +1,119 @@
+﻿@page "/mantenimiento"
+
+<PageTitle>Mantenimiento — Conjunto Residencial</PageTitle>
+
+<div class="crm-shell">
+
+    <Sidebar />
+
+    <main class="main-content">
+
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Mantenimiento</h1>
+                <span class="page-breadcrumb">Gestión de mantenimientos · Zonas comunes y equipos</span>
+            </div>
+            <div class="topbar-right">
+                <button class="btn-primary" @onclick="@(() => _mostrarFormulario = true)">
+                    + Registrar Mantenimiento
+                </button>
+            </div>
+        </header>
+
+        <div class="page-body">
+
+            <!-- Tarjetas resumen por tipo -->
+            <MantenimientoTarjetas Mantenimientos="@_mantenimientos" />
+
+            <!-- Filtros -->
+            <MantenimientoFiltros
+                FiltroEstado="@_filtroEstado"
+                FiltroTipo="@_filtroTipo"
+                Tipos="@_tipos"
+                OnEstadoChanged="@((e) => _filtroEstado = e)"
+                OnTipoChanged="@((t) => _filtroTipo = t)" />
+
+            <!-- Tabla -->
+            <MantenimientoTabla
+                Mantenimientos="@MantenimientosFiltrados"
+                OnCambiarEstado="@CambiarEstado" />
+
+        </div>
+
+        @if (_mostrarFormulario)
+        {
+            <MantenimientoFormulario
+                Tipos="@_tipos"
+                ZonasComunes="@_zonasComunes"
+                OnGuardar="@GuardarMantenimiento"
+                OnCancelar="@(() => _mostrarFormulario = false)" />
+        }
+
+    </main>
+</div>
+
+@code {
+    private bool   _mostrarFormulario = false;
+    private string _filtroEstado = "Todos";
+    private string _filtroTipo   = "Todos";
+
+    // ── Modelos ───────────────────────────────────────────
+    public record MantenimientoItem(
+        int    Id,
+        string Tipo,
+        string ZonaComun,
+        string Descripcion,
+        string Proveedor,
+        string Fecha,
+        string Estado,
+        decimal Costo);
+
+    // ── Catálogos ─────────────────────────────────────────
+    private List<string> _tipos = new()
+    {
+        "Ascensor", "Jardín", "Parque Infantil",
+        "Piscina", "Eléctrico", "Plomería", "Pintura", "Otro"
+    };
+
+    private List<string> _zonasComunes = new()
+    {
+        "Torre A", "Torre B", "Zona Verde", "Parque Infantil",
+        "Piscina", "Salón Social", "Gimnasio", "Parqueadero", "General"
+    };
+
+    // ── Datos simulados ───────────────────────────────────
+    private List<MantenimientoItem> _mantenimientos = new()
+    {
+        new(1,  "Ascensor",       "Torre B",        "Revisión técnica anual y lubricación de cables",   "Otis Colombia",       "24 Feb 2026", "Pendiente",   1800000),
+        new(2,  "Jardín",         "Zona Verde",      "Poda de árboles, fertilización y riego",          "Jardines del Norte",  "25 Feb 2026", "En curso",    450000),
+        new(3,  "Parque Infantil","Parque Infantil",  "Inspección de equipos, pintura y tornillería",    "MantenPro SAS",       "1 Mar 2026",  "Pendiente",   320000),
+        new(4,  "Piscina",        "Piscina",          "Limpieza profunda y balance de químicos",         "AquaClean Ltda",      "2 Mar 2026",  "Pendiente",   600000),
+        new(5,  "Eléctrico",      "General",          "Revisión tableros eléctricos zonas comunes",      "Electro Andes",       "18 Feb 2026", "Completado",  950000),
+        new(6,  "Plomería",       "Torre A",          "Reparación tubería 3er piso — fuga detectada",    "Plomería Express",    "15 Feb 2026", "Completado",  280000),
+        new(7,  "Ascensor",       "Torre A",          "Cambio de puertas y ajuste de niveles",           "Otis Colombia",       "10 Feb 2026", "Completado",  2400000),
+        new(8,  "Pintura",        "Salón Social",     "Pintura general paredes y techo salón social",    "Pinturas Andinas",    "5 Mar 2026",  "Pendiente",   750000),
+        new(9,  "Gimnasio",       "Gimnasio",         "Mantenimiento equipos cardio y de pesas",         "FitService Colombia", "8 Mar 2026",  "En curso",    400000),
+        new(10, "Eléctrico",      "Parqueadero",      "Instalación luces LED parqueadero sótano",        "Electro Andes",       "12 Mar 2026", "Pendiente",   1100000),
+    };
+
+    // ── Computed ──────────────────────────────────────────
+    private List<MantenimientoItem> MantenimientosFiltrados =>
+        _mantenimientos
+            .Where(m => _filtroEstado == "Todos" || m.Estado == _filtroEstado)
+            .Where(m => _filtroTipo   == "Todos" || m.Tipo   == _filtroTipo)
+            .ToList();
+
+    // ── Acciones ──────────────────────────────────────────
+    private void CambiarEstado((int Id, string NuevoEstado) datos)
+    {
+        var idx = _mantenimientos.FindIndex(m => m.Id == datos.Id);
+        if (idx >= 0)
+            _mantenimientos[idx] = _mantenimientos[idx] with { Estado = datos.NuevoEstado };
+    }
+
+    private void GuardarMantenimiento(MantenimientoItem nuevo)
+    {
+        _mantenimientos.Insert(0, nuevo with { Id = _mantenimientos.Count + 1 });
+        _mostrarFormulario = false;
+    }
+}

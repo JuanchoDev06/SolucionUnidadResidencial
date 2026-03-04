@@ -1,0 +1,60 @@
+﻿@using UnidadResidencialProject.Components.Pages.Mantenimiento
+
+<div class="tarjetas-grid">
+    @foreach (var tarjeta in GetTarjetas())
+    {
+        <div class="tarjeta">
+            <div class="tarjeta-top">
+                <span class="tarjeta-icon">@tarjeta.Icono</span>
+                <span class="tarjeta-tipo">@tarjeta.Tipo</span>
+            </div>
+            <div class="tarjeta-nums">
+                <div class="tarjeta-stat">
+                    <span class="tnum pending">@tarjeta.Pendientes</span>
+                    <span class="tlbl">Pendientes</span>
+                </div>
+                <div class="tarjeta-stat">
+                    <span class="tnum inprogress">@tarjeta.EnCurso</span>
+                    <span class="tlbl">En curso</span>
+                </div>
+                <div class="tarjeta-stat">
+                    <span class="tnum done">@tarjeta.Completados</span>
+                    <span class="tlbl">Completados</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<Mantenimiento.MantenimientoItem> Mantenimientos { get; set; } = new();
+
+    private record TarjetaResumen(string Tipo, string Icono,
+        int Pendientes, int EnCurso, int Completados);
+
+    private List<TarjetaResumen> GetTarjetas()
+    {
+        var iconos = new Dictionary<string, string>
+        {
+            ["Ascensor"] = "🛗",
+            ["Jardín"] = "🌿",
+            ["Parque Infantil"] = "🎠",
+            ["Piscina"] = "🏊",
+            ["Eléctrico"] = "⚡",
+            ["Plomería"] = "🔧",
+            ["Pintura"] = "🎨",
+            ["Gimnasio"] = "🏋️",
+            ["Otro"] = "⚙️",
+        };
+
+        return Mantenimientos
+            .GroupBy(m => m.Tipo)
+            .Select(g => new TarjetaResumen(
+                g.Key,
+                iconos.GetValueOrDefault(g.Key, "⚙️"),
+                g.Count(m => m.Estado == "Pendiente"),
+                g.Count(m => m.Estado == "En curso"),
+                g.Count(m => m.Estado == "Completado")))
+            .ToList();
+    }
+}

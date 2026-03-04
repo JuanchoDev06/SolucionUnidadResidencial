@@ -1,0 +1,73 @@
+﻿.tarjetas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: .75rem;
+}
+
+.tarjeta {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    transition: transform .15s, box-shadow .15s;
+}
+
+    .tarjeta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,.1);
+    }
+
+.tarjeta-top {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.tarjeta-icon {
+    font-size: 1.4rem;
+}
+
+.tarjeta-tipo {
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.tarjeta-nums {
+    display: flex;
+    justify-content: space-between;
+}
+
+.tarjeta-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.tnum {
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+    .tnum.pending {
+        color: var(--c-amber);
+    }
+
+    .tnum.inprogress {
+        color: var(--c-blue);
+    }
+
+    .tnum.done {
+        color: var(--c-green);
+    }
+
+.tlbl {
+    font-size: .62rem;
+    color: var(--text3);
+    margin-top: 2px;
+}

@@ -1,0 +1,79 @@
+﻿@using UnidadResidencialProject.Components.Pages.Mantenimiento
+
+<div class="tabla-panel">
+    <div class="panel-header">
+        <h2 class="panel-title">Registro de Mantenimientos</h2>
+        <span class="panel-sub">@Mantenimientos.Count registros encontrados</span>
+    </div>
+    <div class="tabla-wrap">
+        <table class="mant-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Tipo</th>
+                    <th>Zona Común</th>
+                    <th>Descripción</th>
+                    <th>Proveedor</th>
+                    <th>Fecha</th>
+                    <th>Costo</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Mantenimientos)
+                {
+                    <tr>
+                        <td class="td-id">@m.Id</td>
+                        <td>
+                            <span class="tipo-tag">@GetIcono(m.Tipo) @m.Tipo</span>
+                        </td>
+                        <td>@m.ZonaComun</td>
+                        <td class="td-desc">@m.Descripcion</td>
+                        <td class="td-proveedor">@m.Proveedor</td>
+                        <td class="td-mono">@m.Fecha</td>
+                        <td class="td-mono td-costo">$@m.Costo.ToString("N0")</td>
+                        <td>
+                            <span class="estado-tag @GetEstadoCss(m.Estado)">@m.Estado</span>
+                        </td>
+                        <td>
+                            <select class="accion-select"
+                                    value="@m.Estado"
+                                    @onchange="@((e) => OnCambiarEstado.InvokeAsync((m.Id, e.Value!.ToString()!)))">
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="En curso">En curso</option>
+                                <option value="Completado">Completado</option>
+                            </select>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<Mantenimiento.MantenimientoItem> Mantenimientos { get; set; } = new();
+    [Parameter] public EventCallback<(int, string)> OnCambiarEstado { get; set; }
+
+    private string GetEstadoCss(string estado) => estado switch
+    {
+        "Pendiente" => "pendiente",
+        "En curso" => "encurso",
+        "Completado" => "completado",
+        _ => ""
+    };
+
+    private string GetIcono(string tipo) => tipo switch
+    {
+        "Ascensor" => "🛗",
+        "Jardín" => "🌿",
+        "Parque Infantil" => "🎠",
+        "Piscina" => "🏊",
+        "Eléctrico" => "⚡",
+        "Plomería" => "🔧",
+        "Pintura" => "🎨",
+        "Gimnasio" => "🏋️",
+        _ => "⚙️"
+    };
+}

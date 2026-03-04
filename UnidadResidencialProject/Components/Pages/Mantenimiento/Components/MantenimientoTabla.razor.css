@@ -1,0 +1,143 @@
+﻿.tabla-panel {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.panel-title {
+    font-size: .9rem;
+    font-weight: 700;
+}
+
+.panel-sub {
+    font-size: .75rem;
+    color: var(--text3);
+}
+
+.tabla-wrap {
+    overflow-x: auto;
+}
+
+.mant-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .8rem;
+}
+
+    .mant-table thead {
+        background: #F9FAFB;
+    }
+
+    .mant-table th {
+        text-align: left;
+        padding: .65rem 1rem;
+        font-size: .67rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: var(--text3);
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+    }
+
+    .mant-table td {
+        padding: .75rem 1rem;
+        color: var(--text2);
+        border-bottom: 1px solid #F3F4F6;
+        vertical-align: middle;
+    }
+
+    .mant-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .mant-table tr:hover td {
+        background: #F9FAFB;
+    }
+
+.td-id {
+    color: var(--text3);
+    font-size: .72rem;
+}
+
+.td-mono {
+    font-family: var(--mono);
+    font-size: .76rem;
+}
+
+.td-desc {
+    max-width: 220px;
+    color: var(--text);
+    font-size: .78rem;
+}
+
+.td-proveedor {
+    font-weight: 500;
+    color: var(--text);
+}
+
+.td-costo {
+    font-weight: 700;
+    color: var(--c-green);
+}
+
+.tipo-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: 3px 10px;
+    border-radius: 8px;
+    background: #F1F5F9;
+    color: var(--text2);
+    font-size: .72rem;
+    font-weight: 600;
+}
+
+.estado-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: .68rem;
+    font-weight: 600;
+}
+
+    .estado-tag.pendiente {
+        background: #FFFBEB;
+        color: #D97706;
+    }
+
+    .estado-tag.encurso {
+        background: #EFF6FF;
+        color: #2563EB;
+    }
+
+    .estado-tag.completado {
+        background: #F0FDF4;
+        color: #16A34A;
+    }
+
+.accion-select {
+    padding: .3rem .6rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #F9FAFB;
+    font-size: .72rem;
+    font-family: inherit;
+    color: var(--text2);
+    outline: none;
+    cursor: pointer;
+    transition: border .15s;
+}
+
+    .accion-select:focus {
+        border-color: var(--accent);
+    }
