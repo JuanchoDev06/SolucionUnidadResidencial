@@ -75,7 +75,7 @@ Mapa visual de cupos en tiempo real, registro de visitantes con placa e historia
 
 ---
 
-### 🔜 Mantenimiento
+### ✅  Mantenimiento
 Programación y seguimiento de mantenimientos por tipo y zona común. Registro de proveedor, costo y estado.
 
 **Entidades BD relacionadas:** `Mantenimiento`, `TipoMantenimiento`, `ZonaComun`
@@ -180,7 +180,7 @@ Presiona `F5` en Visual Studio o haz clic en el botón **Ejecutar**. El proyecto
 | Dashboard | ✅ Completo | ✅ Datos simulados | ⏳ Pendiente |
 | Control de Acceso | ✅ Completo | ✅ Datos simulados | ⏳ Pendiente |
 | Parqueadero | ✅ Completo | ✅ Datos simulados | ⏳ Pendiente |
-| Mantenimiento | 🔜 Pendiente | ⏳ Pendiente | ⏳ Pendiente |
+| Mantenimiento | ✅ Completo | ✅ Datos simulados | ⏳ Pendiente |
 | Mensajería | 🔜 Pendiente | ⏳ Pendiente | ⏳ Pendiente |
 | Reservas | 🔜 Pendiente | ⏳ Pendiente | ⏳ Pendiente |
 | Residentes | 🔜 Pendiente | ⏳ Pendiente | ⏳ Pendiente |
