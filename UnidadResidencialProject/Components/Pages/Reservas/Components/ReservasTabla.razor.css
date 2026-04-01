@@ -1,0 +1,181 @@
+﻿.tabla-panel {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.panel-title {
+    font-size: .9rem;
+    font-weight: 700;
+}
+
+.panel-sub {
+    font-size: .75rem;
+    color: var(--text3);
+}
+
+.tabla-wrap {
+    overflow-x: auto;
+}
+
+.res-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .8rem;
+}
+
+    .res-table thead {
+        background: #F9FAFB;
+    }
+
+    .res-table th {
+        text-align: left;
+        padding: .65rem 1rem;
+        font-size: .67rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: var(--text3);
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+    }
+
+    .res-table td {
+        padding: .75rem 1rem;
+        color: var(--text2);
+        border-bottom: 1px solid #F3F4F6;
+        vertical-align: middle;
+    }
+
+    .res-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .res-table tr:hover td {
+        background: #F9FAFB;
+    }
+
+.td-id {
+    color: var(--text3);
+    font-size: .72rem;
+}
+
+.td-mono {
+    font-family: var(--mono);
+    font-size: .75rem;
+}
+
+.td-nombre {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.td-valor {
+    font-weight: 700;
+    color: var(--c-green);
+    font-family: var(--mono);
+}
+
+.zona-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: 3px 10px;
+    border-radius: 8px;
+    font-size: .72rem;
+    font-weight: 600;
+}
+
+    .zona-tag.salon {
+        background: #EDE9FE;
+        color: #6D28D9;
+    }
+
+    .zona-tag.bbq {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .zona-tag.piscina {
+        background: #E0F2FE;
+        color: #0369A1;
+    }
+
+    .zona-tag.gym {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .zona-tag.cancha {
+        background: #DCFCE7;
+        color: #166534;
+    }
+
+    .zona-tag.terraza {
+        background: #FFF7ED;
+        color: #C2410C;
+    }
+
+    .zona-tag.juegos {
+        background: #F5F3FF;
+        color: #7C3AED;
+    }
+
+.apto-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: #F1F5F9;
+    color: #334155;
+    font-size: .72rem;
+    font-weight: 600;
+    font-family: var(--mono);
+}
+
+.estado-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: .68rem;
+    font-weight: 600;
+}
+
+    .estado-tag.confirmada {
+        background: #F0FDF4;
+        color: #16A34A;
+    }
+
+    .estado-tag.pendiente {
+        background: #FFFBEB;
+        color: #D97706;
+    }
+
+    .estado-tag.cancelada {
+        background: #FEF2F2;
+        color: #DC2626;
+    }
+
+.accion-select {
+    padding: .3rem .6rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #F9FAFB;
+    font-size: .72rem;
+    font-family: inherit;
+    color: var(--text2);
+    outline: none;
+    cursor: pointer;
+}
+
+    .accion-select:focus {
+        border-color: var(--accent);
+    }

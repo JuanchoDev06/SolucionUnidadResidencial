@@ -1,0 +1,86 @@
+﻿@using UnidadResidencialProject.Components.Pages.Reservas
+
+<div class="tabla-panel">
+    <div class="panel-header">
+        <h2 class="panel-title">Listado de Reservas</h2>
+        <span class="panel-sub">@Reservas.Count registros encontrados</span>
+    </div>
+    <div class="tabla-wrap">
+        <table class="res-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Zona Común</th>
+                    <th>Residente</th>
+                    <th>Apartamento</th>
+                    <th>Fecha</th>
+                    <th>Horario</th>
+                    <th>Valor</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Reservas)
+                {
+                    <tr>
+                        <td class="td-id">@r.Id</td>
+                        <td><span class="zona-tag @GetZonaCss(r.ZonaComun)">@GetZonaIcono(r.ZonaComun) @r.ZonaComun</span></td>
+                        <td class="td-nombre">@r.Residente</td>
+                        <td><span class="apto-tag">@r.Apartamento</span></td>
+                        <td class="td-mono">@r.Fecha</td>
+                        <td class="td-mono">@r.HoraInicio – @r.HoraFin</td>
+                        <td class="td-valor">@(r.ValorHora > 0 ? $"${r.ValorHora:N0}" : "Gratis")</td>
+                        <td><span class="estado-tag @GetEstadoCss(r.Estado)">@r.Estado</span></td>
+                        <td>
+                            <select class="accion-select"
+                                    value="@r.Estado"
+                                    @onchange="@((e) => OnCambiarEstado.InvokeAsync((r.Id, e.Value!.ToString()!)))">
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Confirmada">Confirmada</option>
+                                <option value="Cancelada">Cancelada</option>
+                            </select>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<Reservas.ReservaItem> Reservas { get; set; } = new();
+    [Parameter] public EventCallback<(int, string)> OnCambiarEstado { get; set; }
+
+    private string GetEstadoCss(string e) => e switch
+    {
+        "Confirmada" => "confirmada",
+        "Pendiente" => "pendiente",
+        "Cancelada" => "cancelada",
+        _ => ""
+    };
+
+    private string GetZonaCss(string z) => z switch
+    {
+        "Salón Social" => "salon",
+        "BBQ" => "bbq",
+        "Piscina" => "piscina",
+        "Gimnasio" => "gym",
+        "Cancha" => "cancha",
+        "Terraza" => "terraza",
+        "Sala de Juegos" => "juegos",
+        _ => ""
+    };
+
+    private string GetZonaIcono(string z) => z switch
+    {
+        "Salón Social" => "🎉",
+        "BBQ" => "🔥",
+        "Piscina" => "🏊",
+        "Gimnasio" => "🏋️",
+        "Cancha" => "⚽",
+        "Terraza" => "🌅",
+        "Sala de Juegos" => "🎮",
+        _ => "📍"
+    };
+}

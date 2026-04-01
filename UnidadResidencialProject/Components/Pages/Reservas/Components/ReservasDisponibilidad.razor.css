@@ -1,0 +1,133 @@
+﻿.disp-panel {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+}
+
+.disp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: .75rem;
+}
+
+.disp-titulo {
+    font-size: .9rem;
+    font-weight: 700;
+}
+
+.disp-fecha-wrap {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.form-label {
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--text3);
+}
+
+.fecha-input {
+    padding: .4rem .75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: .8rem;
+    font-family: inherit;
+    color: var(--text);
+    outline: none;
+    background: #F9FAFB;
+    transition: border .15s;
+}
+
+    .fecha-input:focus {
+        border-color: var(--accent);
+        background: #fff;
+    }
+
+.zonas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: .75rem;
+}
+
+.zona-card {
+    border-radius: 10px;
+    padding: .9rem;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    transition: transform .15s;
+}
+
+    .zona-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .zona-card.libre {
+        background: #F0FDF4;
+        border-color: #6EE7B7;
+    }
+
+    .zona-card.ocupada {
+        background: #FEF2F2;
+        border-color: #FCA5A5;
+    }
+
+.zona-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.zona-icon {
+    font-size: 1.4rem;
+}
+
+.zona-estado-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+    .zona-estado-dot.libre {
+        background: var(--c-green);
+    }
+
+    .zona-estado-dot.ocupada {
+        background: var(--c-red);
+    }
+
+.zona-nombre {
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.zona-estado-lbl {
+    font-size: .68rem;
+    color: var(--text3);
+}
+
+.zona-horarios {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: .25rem;
+}
+
+.horario-chip {
+    font-size: .65rem;
+    font-family: var(--mono);
+    font-weight: 600;
+    background: #FEE2E2;
+    color: #DC2626;
+    padding: 1px 6px;
+    border-radius: 4px;
+    display: inline-block;
+}

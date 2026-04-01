@@ -1,0 +1,62 @@
+﻿@using UnidadResidencialProject.Components.Pages.Reservas
+
+<div class="disp-panel">
+    <div class="disp-header">
+        <h2 class="disp-titulo">Disponibilidad por Fecha</h2>
+        <div class="disp-fecha-wrap">
+            <label class="form-label">Seleccionar fecha:</label>
+            <input type="date" class="fecha-input"
+                   value="@FechaSeleccionada.ToString("yyyy-MM-dd")"
+                   @onchange="@((e) => OnFechaChanged.InvokeAsync(DateTime.Parse(e.Value!.ToString()!)))" />
+        </div>
+    </div>
+
+    <div class="zonas-grid">
+        @foreach (var zona in _zonas)
+        {
+            var reservasZona = Reservas
+            .Where(r => r.ZonaComun == zona.Nombre &&
+            r.Fecha == FechaSeleccionada.ToString("d MMM yyyy") &&
+            r.Estado != "Cancelada")
+            .ToList();
+
+            var ocupada = reservasZona.Any();
+
+            <div class="zona-card @(ocupada ? "ocupada" : "libre")">
+                <div class="zona-top">
+                    <span class="zona-icon">@zona.Icono</span>
+                    <span class="zona-estado-dot @(ocupada ? "ocupada" : "libre")"></span>
+                </div>
+                <span class="zona-nombre">@zona.Nombre</span>
+                <span class="zona-estado-lbl">@(ocupada ? $"{reservasZona.Count} reserva(s)" : "Disponible")</span>
+                @if (ocupada)
+                {
+                    <div class="zona-horarios">
+                        @foreach (var r in reservasZona)
+                        {
+                            <span class="horario-chip">@r.HoraInicio – @r.HoraFin</span>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<Reservas.ReservaItem> Reservas { get; set; } = new();
+    [Parameter] public DateTime FechaSeleccionada { get; set; } = DateTime.Today;
+    [Parameter] public EventCallback<DateTime> OnFechaChanged { get; set; }
+
+    private record ZonaInfo(string Nombre, string Icono);
+    private List<ZonaInfo> _zonas = new()
+    {
+        new("Salón Social", "🎉"),
+        new("BBQ",          "🔥"),
+        new("Piscina",      "🏊"),
+        new("Gimnasio",     "🏋️"),
+        new("Cancha",       "⚽"),
+        new("Terraza",      "🌅"),
+        new("Sala de Juegos","🎮"),
+    };
+}

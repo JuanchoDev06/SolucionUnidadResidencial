@@ -1,0 +1,44 @@
+﻿<div class="filtros-bar">
+    <div class="filtros-grupo">
+        <span class="filtros-label">Estado:</span>
+        @foreach (var estado in _estados)
+        {
+            <button class="filtro-btn @(FiltroEstado == estado.Key ? "active " + estado.Css : "")"
+                    @onclick="@(() => OnEstadoChanged.InvokeAsync(estado.Key))">
+                <span class="fdot @estado.Css"></span>
+                @estado.Key
+            </button>
+        }
+    </div>
+    <div class="filtros-grupo">
+        <span class="filtros-label">Zona:</span>
+        <select class="filtro-select" @bind="_zonaLocal" @bind:after="EmitZona">
+            <option value="Todas">Todas las zonas</option>
+            @foreach (var z in Zonas)
+            {
+                <option value="@z">@z</option>
+            }
+        </select>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string FiltroEstado { get; set; } = "Todos";
+    [Parameter] public string FiltroZona { get; set; } = "Todas";
+    [Parameter] public List<string> Zonas { get; set; } = new();
+    [Parameter] public EventCallback<string> OnEstadoChanged { get; set; }
+    [Parameter] public EventCallback<string> OnZonaChanged { get; set; }
+
+    private string _zonaLocal = "Todas";
+
+    private record EstadoOption(string Key, string Css);
+    private List<EstadoOption> _estados = new()
+    {
+        new("Todos",      "todos"),
+        new("Confirmada", "confirmada"),
+        new("Pendiente",  "pendiente"),
+        new("Cancelada",  "cancelada"),
+    };
+
+    private async Task EmitZona() => await OnZonaChanged.InvokeAsync(_zonaLocal);
+}

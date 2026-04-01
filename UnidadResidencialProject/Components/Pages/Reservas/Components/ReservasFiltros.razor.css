@@ -1,0 +1,109 @@
+﻿.filtros-bar {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: .75rem 1rem;
+    box-shadow: var(--shadow);
+}
+
+.filtros-grupo {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+
+.filtros-label {
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--text3);
+}
+
+.filtro-btn {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .4rem .9rem;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: #F9FAFB;
+    font-size: .78rem;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+}
+
+    .filtro-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .filtro-btn.active {
+        color: #fff;
+        border-color: transparent;
+    }
+
+        .filtro-btn.active.todos {
+            background: var(--text2);
+        }
+
+        .filtro-btn.active.confirmada {
+            background: var(--c-green);
+        }
+
+        .filtro-btn.active.pendiente {
+            background: var(--c-amber);
+        }
+
+        .filtro-btn.active.cancelada {
+            background: var(--c-red);
+        }
+
+.fdot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+}
+
+    .fdot.todos {
+        background: var(--text3);
+    }
+
+    .fdot.confirmada {
+        background: var(--c-green);
+    }
+
+    .fdot.pendiente {
+        background: var(--c-amber);
+    }
+
+    .fdot.cancelada {
+        background: var(--c-red);
+    }
+
+.filtro-btn.active .fdot {
+    background: rgba(255,255,255,.7);
+}
+
+.filtro-select {
+    padding: .4rem .75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #F9FAFB;
+    font-size: .78rem;
+    font-family: inherit;
+    color: var(--text2);
+    outline: none;
+    cursor: pointer;
+    transition: border .15s;
+}
+
+    .filtro-select:focus {
+        border-color: var(--accent);
+    }

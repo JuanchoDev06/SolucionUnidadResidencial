@@ -1,0 +1,114 @@
+﻿.crm-shell {
+    display: flex;
+    min-height: 100vh;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 2rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.page-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+}
+
+.page-breadcrumb {
+    font-size: .75rem;
+    color: var(--text3);
+    margin-top: 2px;
+    display: block;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: .55rem 1.1rem;
+    font-size: .83rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: background .15s;
+}
+
+    .btn-primary:hover {
+        background: #1D4ED8;
+    }
+
+.page-body {
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.stats-row {
+    display: flex;
+    gap: .75rem;
+    flex-wrap: wrap;
+}
+
+.stat-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: .75rem 1.5rem;
+    border-radius: var(--radius);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    min-width: 100px;
+}
+
+.stat-num {
+    font-size: 1.7rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.stat-lbl {
+    font-size: .68rem;
+    color: var(--text3);
+    margin-top: 3px;
+}
+
+.stat-chip.blue .stat-num {
+    color: var(--c-blue);
+}
+
+.stat-chip.amber .stat-num {
+    color: var(--c-amber);
+}
+
+.stat-chip.green .stat-num {
+    color: var(--c-green);
+}
+
+.stat-chip.red .stat-num {
+    color: var(--c-red);
+}
+
+.stat-chip.teal .stat-num {
+    color: var(--c-teal);
+}

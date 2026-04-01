@@ -1,0 +1,143 @@
+﻿@page "/reservas"
+
+<PageTitle>Reservas — Conjunto Residencial</PageTitle>
+
+<div class="crm-shell">
+
+    <Sidebar />
+
+    <main class="main-content">
+
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Reservas</h1>
+                <span class="page-breadcrumb">Gestión de zonas comunes · Salón, BBQ, Piscina, Gimnasio</span>
+            </div>
+            <div class="topbar-right">
+                <button class="btn-primary" @onclick="@(() => _mostrarFormulario = true)">
+                    + Nueva Reserva
+                </button>
+            </div>
+        </header>
+
+        <div class="page-body">
+
+            <!-- Stats row -->
+            <div class="stats-row">
+                <div class="stat-chip blue">
+                    <span class="stat-num">@_reservas.Count</span>
+                    <span class="stat-lbl">Total reservas</span>
+                </div>
+                <div class="stat-chip amber">
+                    <span class="stat-num">@_reservas.Count(r => r.Estado == "Pendiente")</span>
+                    <span class="stat-lbl">Pendientes</span>
+                </div>
+                <div class="stat-chip green">
+                    <span class="stat-num">@_reservas.Count(r => r.Estado == "Confirmada")</span>
+                    <span class="stat-lbl">Confirmadas</span>
+                </div>
+                <div class="stat-chip red">
+                    <span class="stat-num">@_reservas.Count(r => r.Estado == "Cancelada")</span>
+                    <span class="stat-lbl">Canceladas</span>
+                </div>
+                <div class="stat-chip teal">
+                    <span class="stat-num">@_reservas.Count(r => r.Fecha == DateTime.Today.ToString("d MMM yyyy"))</span>
+                    <span class="stat-lbl">Hoy</span>
+                </div>
+            </div>
+
+            <!-- Disponibilidad -->
+            <ReservasDisponibilidad
+                Reservas="@_reservas"
+                FechaSeleccionada="@_fechaSeleccionada"
+                OnFechaChanged="@((f) => _fechaSeleccionada = f)" />
+
+            <!-- Filtros -->
+            <ReservasFiltros
+                FiltroEstado="@_filtroEstado"
+                FiltroZona="@_filtroZona"
+                Zonas="@_zonas"
+                OnEstadoChanged="@((e) => _filtroEstado = e)"
+                OnZonaChanged="@((z) => _filtroZona = z)" />
+
+            <!-- Tabla -->
+            <ReservasTabla
+                Reservas="@ReservasFiltradas"
+                OnCambiarEstado="@CambiarEstado" />
+
+        </div>
+
+        @if (_mostrarFormulario)
+        {
+            <ReservasFormulario
+                Zonas="@_zonas"
+                Reservas="@_reservas"
+                OnGuardar="@GuardarReserva"
+                OnCancelar="@(() => _mostrarFormulario = false)" />
+        }
+
+    </main>
+</div>
+
+@code {
+    private bool     _mostrarFormulario  = false;
+    private string   _filtroEstado       = "Todos";
+    private string   _filtroZona         = "Todas";
+    private DateTime _fechaSeleccionada  = DateTime.Today;
+
+    // ── Modelo ────────────────────────────────────────────
+    public record ReservaItem(
+        int      Id,
+        string   ZonaComun,
+        string   Residente,
+        string   Apartamento,
+        string   Fecha,
+        string   HoraInicio,
+        string   HoraFin,
+        string   Estado,
+        decimal  ValorHora);
+
+    // ── Catálogos ─────────────────────────────────────────
+    private List<string> _zonas = new()
+    {
+        "Salón Social", "BBQ", "Piscina", "Gimnasio",
+        "Cancha", "Terraza", "Sala de Juegos"
+    };
+
+    // ── Datos simulados ───────────────────────────────────
+    private List<ReservaItem> _reservas = new()
+    {
+        new(1,  "Salón Social", "María López",    "Apto 302", "22 Feb 2026", "6:00 PM",  "10:00 PM", "Confirmada", 50000),
+        new(2,  "BBQ",          "Carlos Ríos",    "Apto 501", "23 Feb 2026", "12:00 PM", "4:00 PM",  "Pendiente",  30000),
+        new(3,  "Gimnasio",     "Ana Torres",     "Apto 104", "22 Feb 2026", "7:00 AM",  "9:00 AM",  "Confirmada", 0),
+        new(4,  "Piscina",      "Pedro Gómez",    "Apto 207", "23 Feb 2026", "10:00 AM", "12:00 PM", "Confirmada", 20000),
+        new(5,  "Terraza",      "Sandra Gil",     "Apto 410", "24 Feb 2026", "5:00 PM",  "8:00 PM",  "Pendiente",  40000),
+        new(6,  "Salón Social", "Juan Pérez",     "Apto 205", "25 Feb 2026", "2:00 PM",  "6:00 PM",  "Pendiente",  50000),
+        new(7,  "BBQ",          "Laura Martínez", "Apto 308", "21 Feb 2026", "11:00 AM", "3:00 PM",  "Cancelada",  30000),
+        new(8,  "Cancha",       "Diego Vargas",   "Apto 603", "22 Feb 2026", "4:00 PM",  "6:00 PM",  "Confirmada", 15000),
+        new(9,  "Sala de Juegos","Camila Reyes",  "Apto 701", "23 Feb 2026", "3:00 PM",  "5:00 PM",  "Confirmada", 10000),
+        new(10, "Piscina",      "Andrés Castro",  "Apto 402", "20 Feb 2026", "9:00 AM",  "11:00 AM", "Cancelada",  20000),
+    };
+
+    // ── Computed ──────────────────────────────────────────
+    private List<ReservaItem> ReservasFiltradas =>
+        _reservas
+            .Where(r => _filtroEstado == "Todos" || r.Estado   == _filtroEstado)
+            .Where(r => _filtroZona   == "Todas" || r.ZonaComun == _filtroZona)
+            .OrderBy(r => r.Fecha)
+            .ToList();
+
+    // ── Acciones ──────────────────────────────────────────
+    private void CambiarEstado((int Id, string NuevoEstado) datos)
+    {
+        var idx = _reservas.FindIndex(r => r.Id == datos.Id);
+        if (idx >= 0)
+            _reservas[idx] = _reservas[idx] with { Estado = datos.NuevoEstado };
+    }
+
+    private void GuardarReserva(ReservaItem nueva)
+    {
+        _reservas.Insert(0, nueva with { Id = _reservas.Count + 1 });
+        _mostrarFormulario = false;
+    }
+}
