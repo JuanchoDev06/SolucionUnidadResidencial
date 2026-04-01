@@ -1,0 +1,145 @@
+﻿.tabla-panel {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.panel-title {
+    font-size: .9rem;
+    font-weight: 700;
+}
+
+.panel-sub {
+    font-size: .75rem;
+    color: var(--text3);
+}
+
+.tabla-wrap {
+    overflow-x: auto;
+}
+
+.msg-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .8rem;
+}
+
+    .msg-table thead {
+        background: #F9FAFB;
+    }
+
+    .msg-table th {
+        text-align: left;
+        padding: .65rem 1rem;
+        font-size: .67rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: var(--text3);
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+    }
+
+    .msg-table td {
+        padding: .75rem 1rem;
+        color: var(--text2);
+        border-bottom: 1px solid #F3F4F6;
+        vertical-align: middle;
+    }
+
+    .msg-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .msg-table tr:hover td {
+        background: #F9FAFB;
+    }
+
+    .msg-table tr.row-pendiente td {
+        background: #FFFDF5;
+    }
+
+.td-id {
+    color: var(--text3);
+    font-size: .72rem;
+}
+
+.td-mono {
+    font-family: var(--mono);
+    font-size: .75rem;
+}
+
+.td-nombre {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.td-empresa {
+    font-weight: 500;
+}
+
+.td-ok {
+    color: var(--c-green);
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.tipo-icon {
+    font-size: 1.2rem;
+}
+
+.apto-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: #F1F5F9;
+    color: #334155;
+    font-size: .72rem;
+    font-weight: 600;
+    font-family: var(--mono);
+}
+
+.estado-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: .68rem;
+    font-weight: 600;
+}
+
+    .estado-tag.pendiente {
+        background: #FFFBEB;
+        color: #D97706;
+    }
+
+    .estado-tag.entregado {
+        background: #F0FDF4;
+        color: #16A34A;
+    }
+
+.btn-entregar {
+    padding: .3rem .75rem;
+    border-radius: 6px;
+    border: 1px solid #6EE7B7;
+    background: #F0FDF4;
+    font-size: .72rem;
+    font-weight: 600;
+    color: #16A34A;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+}
+
+    .btn-entregar:hover {
+        background: #D1FAE5;
+        border-color: #34D399;
+    }

@@ -1,0 +1,35 @@
+﻿<div class="filtros-bar">
+    <div class="filtros-left">
+        <span class="filtros-label">Estado:</span>
+        @foreach (var estado in _estados)
+        {
+            <button class="filtro-btn @(FiltroEstado == estado.Key ? "active " + estado.Css : "")"
+                    @onclick="@(() => OnEstadoChanged.InvokeAsync(estado.Key))">
+                <span class="fdot @estado.Css"></span>
+                @estado.Key
+            </button>
+        }
+    </div>
+    <div class="filtros-right">
+        <input type="text"
+               class="search-input"
+               placeholder="🔍  Buscar apto, residente, empresa o guía..."
+               value="@TextoBusqueda"
+               @oninput="@((e) => OnBusquedaChanged.InvokeAsync(e.Value?.ToString() ?? ""))" />
+    </div>
+</div>
+
+@code {
+    [Parameter] public string FiltroEstado { get; set; } = "Todos";
+    [Parameter] public string TextoBusqueda { get; set; } = "";
+    [Parameter] public EventCallback<string> OnEstadoChanged { get; set; }
+    [Parameter] public EventCallback<string> OnBusquedaChanged { get; set; }
+
+    private record EstadoOption(string Key, string Css);
+    private List<EstadoOption> _estados = new()
+    {
+        new("Todos",     "todos"),
+        new("Pendiente", "pendiente"),
+        new("Entregado", "entregado"),
+    };
+}

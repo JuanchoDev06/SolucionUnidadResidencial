@@ -1,0 +1,107 @@
+﻿@page "/mensajeria"
+
+<PageTitle>Mensajería — Conjunto Residencial</PageTitle>
+
+<div class="crm-shell">
+
+    <Sidebar />
+
+    <main class="main-content">
+
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Mensajería</h1>
+                <span class="page-breadcrumb">Control de paquetes y correspondencia</span>
+            </div>
+            <div class="topbar-right">
+                <button class="btn-primary" @onclick="@(() => _mostrarFormulario = true)">
+                    + Registrar Paquete
+                </button>
+            </div>
+        </header>
+
+        <div class="page-body">
+
+            <MensajeriaTarjetas Paquetes="@_paquetes" />
+
+            <MensajeriaFiltros
+                FiltroEstado="@_filtroEstado"
+                TextoBusqueda="@_busqueda"
+                OnEstadoChanged="@((e) => _filtroEstado = e)"
+                OnBusquedaChanged="@((b) => _busqueda = b)" />
+
+            <MensajeriaTabla
+                Paquetes="@PaquetesFiltrados"
+                OnMarcarEntregado="@MarcarEntregado" />
+
+        </div>
+
+        @if (_mostrarFormulario)
+        {
+            <MensajeriaFormulario
+                OnGuardar="@GuardarPaquete"
+                OnCancelar="@(() => _mostrarFormulario = false)" />
+        }
+
+    </main>
+</div>
+
+@code {
+    private bool   _mostrarFormulario = false;
+    private string _filtroEstado = "Todos";
+    private string _busqueda     = "";
+
+    // ── Modelo ────────────────────────────────────────────
+    public record PaqueteItem(
+        int     Id,
+        string  Empresa,
+        string  Guia,
+        string  Apartamento,
+        string  Residente,
+        string  FechaRecepcion,
+        string? FechaEntrega,
+        string  Tipo,
+        string  Estado);
+
+    // ── Datos simulados ───────────────────────────────────
+    private List<PaqueteItem> _paquetes = new()
+    {
+        new(1,  "Amazon",             "AMZ-7821934", "Apto 302", "María López",   "Hoy 10:15 AM",   null,              "Paquete",        "Pendiente"),
+        new(2,  "Rappi",              "RAP-5541002", "Apto 501", "Carlos Ríos",   "Ayer 3:40 PM",   null,              "Paquete",        "Pendiente"),
+        new(3,  "Mercado Libre",      "ML-3329871",  "Apto 104", "Ana Torres",    "Ayer 11:20 AM",  null,              "Paquete",        "Pendiente"),
+        new(4,  "DHL",                "DHL-1123456", "Apto 207", "Pedro Gómez",   "Hoy 8:30 AM",    null,              "Sobre",          "Pendiente"),
+        new(5,  "Correos Nacionales", "CN-9987654",  "Apto 410", "Sandra Gil",    "Hoy 9:00 AM",    null,              "Correspondencia","Pendiente"),
+        new(6,  "FedEx",              "FDX-4456789", "Apto 308", "Laura Martínez","18 Feb 2:00 PM", "18 Feb 6:30 PM",  "Paquete",        "Entregado"),
+        new(7,  "Amazon",             "AMZ-6612345", "Apto 205", "Juan Pérez",    "17 Feb 10:00 AM","17 Feb 12:15 PM", "Paquete",        "Entregado"),
+        new(8,  "Adidas",             "ADI-7890123", "Apto 501", "Carlos Ríos",   "16 Feb 3:15 PM", "16 Feb 7:00 PM",  "Paquete",        "Entregado"),
+    };
+
+    // ── Computed ──────────────────────────────────────────
+    private List<PaqueteItem> PaquetesFiltrados =>
+        _paquetes
+            .Where(p => _filtroEstado == "Todos" || p.Estado == _filtroEstado)
+            .Where(p => string.IsNullOrWhiteSpace(_busqueda) ||
+                        p.Apartamento.Contains(_busqueda, StringComparison.OrdinalIgnoreCase) ||
+                        p.Residente.Contains(_busqueda,   StringComparison.OrdinalIgnoreCase) ||
+                        p.Empresa.Contains(_busqueda,     StringComparison.OrdinalIgnoreCase) ||
+                        p.Guia.Contains(_busqueda,        StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+    // ── Acciones ──────────────────────────────────────────
+    private void MarcarEntregado(int id)
+    {
+        var idx = _paquetes.FindIndex(p => p.Id == id);
+        if (idx >= 0)
+            _paquetes[idx] = _paquetes[idx] with
+            {
+                Estado       = "Entregado",
+                FechaEntrega = DateTime.Now.ToString("d MMM h:mm tt")
+            };
+    }
+
+    private void GuardarPaquete(PaqueteItem nuevo)
+    {
+        _paquetes.Insert(0, nuevo with { Id = _paquetes.Count + 1 });
+        _mostrarFormulario = false;
+    }
+}

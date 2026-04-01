@@ -1,0 +1,84 @@
+﻿.tarjetas-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: .75rem;
+}
+
+.tarjeta-stat {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    border-left: 4px solid transparent;
+    transition: transform .15s;
+}
+
+    .tarjeta-stat:hover {
+        transform: translateY(-2px);
+    }
+
+    .tarjeta-stat.blue {
+        border-left-color: var(--c-blue);
+    }
+
+    .tarjeta-stat.amber {
+        border-left-color: var(--c-amber);
+    }
+
+    .tarjeta-stat.green {
+        border-left-color: var(--c-green);
+    }
+
+    .tarjeta-stat.red {
+        border-left-color: var(--c-red);
+    }
+
+    .tarjeta-stat.teal {
+        border-left-color: var(--c-teal);
+    }
+
+.ts-icon {
+    font-size: 1.6rem;
+    flex-shrink: 0;
+}
+
+.ts-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.ts-num {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.ts-lbl {
+    font-size: .68rem;
+    color: var(--text3);
+    margin-top: 2px;
+}
+
+.tarjeta-stat.blue .ts-num {
+    color: var(--c-blue);
+}
+
+.tarjeta-stat.amber .ts-num {
+    color: var(--c-amber);
+}
+
+.tarjeta-stat.green .ts-num {
+    color: var(--c-green);
+}
+
+.tarjeta-stat.red .ts-num {
+    color: var(--c-red);
+}
+
+.tarjeta-stat.teal .ts-num {
+    color: var(--c-teal);
+}

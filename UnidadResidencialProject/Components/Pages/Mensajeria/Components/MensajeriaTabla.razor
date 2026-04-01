@@ -1,0 +1,71 @@
+﻿@using UnidadResidencialProject.Components.Pages.Mensajeria
+
+<div class="tabla-panel">
+    <div class="panel-header">
+        <h2 class="panel-title">Registro de Paquetes</h2>
+        <span class="panel-sub">@Paquetes.Count registros encontrados</span>
+    </div>
+    <div class="tabla-wrap">
+        <table class="msg-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Tipo</th>
+                    <th>Empresa</th>
+                    <th>Guía</th>
+                    <th>Apartamento</th>
+                    <th>Residente</th>
+                    <th>Recepción</th>
+                    <th>Entrega</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Paquetes)
+                {
+                    <tr class="@(p.Estado == "Pendiente" ? "row-pendiente" : "")">
+                        <td class="td-id">@p.Id</td>
+                        <td><span class="tipo-icon">@GetIcono(p.Tipo)</span></td>
+                        <td class="td-empresa">@p.Empresa</td>
+                        <td class="td-mono">@p.Guia</td>
+                        <td><span class="apto-tag">@p.Apartamento</span></td>
+                        <td class="td-nombre">@p.Residente</td>
+                        <td class="td-mono">@p.FechaRecepcion</td>
+                        <td class="td-mono">@(p.FechaEntrega ?? "—")</td>
+                        <td>
+                            <span class="estado-tag @(p.Estado == "Pendiente" ? "pendiente" : "entregado")">
+                                @p.Estado
+                            </span>
+                        </td>
+                        <td>
+                            @if (p.Estado == "Pendiente")
+                            {
+                                <button class="btn-entregar"
+                                        @onclick="@(() => OnMarcarEntregado.InvokeAsync(p.Id))">
+                                    ✓ Entregar
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="td-ok">✓</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<Mensajeria.PaqueteItem> Paquetes { get; set; } = new();
+    [Parameter] public EventCallback<int> OnMarcarEntregado { get; set; }
+
+    private string GetIcono(string tipo) => tipo switch
+    {
+        "Sobre" => "✉️",
+        "Correspondencia" => "📄",
+        _ => "📦"
+    };
+}

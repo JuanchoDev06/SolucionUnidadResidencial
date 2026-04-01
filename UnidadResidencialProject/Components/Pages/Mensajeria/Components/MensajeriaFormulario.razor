@@ -1,0 +1,78 @@
+﻿@using UnidadResidencialProject.Components.Pages.Mensajeria
+
+<div class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2 class="modal-title">Registrar Paquete</h2>
+            <button class="modal-close" @onclick="OnCancelar">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Empresa / Remitente</label>
+                    <input class="form-control" type="text"
+                           placeholder="Ej: Amazon, DHL, Rappi..." @bind="_empresa" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Número de Guía</label>
+                    <input class="form-control" type="text"
+                           placeholder="Ej: AMZ-7821934" @bind="_guia" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Apartamento Destinatario</label>
+                    <input class="form-control" type="text"
+                           placeholder="Ej: Apto 302" @bind="_apartamento" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nombre del Residente</label>
+                    <input class="form-control" type="text"
+                           placeholder="Ej: María López" @bind="_residente" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Tipo</label>
+                    <select class="form-control" @bind="_tipo">
+                        <option value="Paquete">📦 Paquete</option>
+                        <option value="Sobre">✉️ Sobre</option>
+                        <option value="Correspondencia">📄 Correspondencia</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fecha de Recepción</label>
+                    <input class="form-control" type="text"
+                           value="@DateTime.Now.ToString("d MMM h:mm tt")" readonly />
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" @onclick="OnCancelar">Cancelar</button>
+            <button class="btn-save" @onclick="Guardar">Registrar Paquete</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<Mensajeria.PaqueteItem> OnGuardar { get; set; }
+    [Parameter] public EventCallback OnCancelar { get; set; }
+
+    private string _empresa = "";
+    private string _guia = "";
+    private string _apartamento = "";
+    private string _residente = "";
+    private string _tipo = "Paquete";
+
+    private async Task Guardar()
+    {
+        if (string.IsNullOrWhiteSpace(_empresa) || string.IsNullOrWhiteSpace(_apartamento)) return;
+
+        var nuevo = new Mensajeria.PaqueteItem(
+            0, _empresa, _guia, _apartamento, _residente,
+            "Hoy " + DateTime.Now.ToString("h:mm tt"),
+            null, _tipo, "Pendiente");
+
+        await OnGuardar.InvokeAsync(nuevo);
+    }
+}

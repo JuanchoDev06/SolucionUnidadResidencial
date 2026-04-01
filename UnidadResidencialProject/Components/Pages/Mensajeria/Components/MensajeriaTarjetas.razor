@@ -1,0 +1,46 @@
+﻿@using UnidadResidencialProject.Components.Pages.Mensajeria
+
+<div class="tarjetas-row">
+    <div class="tarjeta-stat blue">
+        <div class="ts-icon">📦</div>
+        <div class="ts-body">
+            <span class="ts-num">@Paquetes.Count</span>
+            <span class="ts-lbl">Total paquetes</span>
+        </div>
+    </div>
+    <div class="tarjeta-stat amber">
+        <div class="ts-icon">⏳</div>
+        <div class="ts-body">
+            <span class="ts-num">@Paquetes.Count(p => p.Estado == "Pendiente")</span>
+            <span class="ts-lbl">Pendientes</span>
+        </div>
+    </div>
+    <div class="tarjeta-stat green">
+        <div class="ts-icon">✅</div>
+        <div class="ts-body">
+            <span class="ts-num">@Paquetes.Count(p => p.Estado == "Entregado")</span>
+            <span class="ts-lbl">Entregados</span>
+        </div>
+    </div>
+    <div class="tarjeta-stat red">
+        <div class="ts-icon">🚨</div>
+        <div class="ts-body">
+            <span class="ts-num">@Paquetes.Count(p => p.Estado == "Pendiente" && EsMasDe48h(p.FechaRecepcion))</span>
+            <span class="ts-lbl">Más de 48h sin recoger</span>
+        </div>
+    </div>
+    <div class="tarjeta-stat teal">
+        <div class="ts-icon">📬</div>
+        <div class="ts-body">
+            <span class="ts-num">@Paquetes.Count(p => p.FechaRecepcion.StartsWith("Hoy"))</span>
+            <span class="ts-lbl">Recibidos hoy</span>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<Mensajeria.PaqueteItem> Paquetes { get; set; } = new();
+
+    private bool EsMasDe48h(string fecha) =>
+        fecha.StartsWith("Ayer") || (!fecha.StartsWith("Hoy") && !fecha.StartsWith("Ayer"));
+}
