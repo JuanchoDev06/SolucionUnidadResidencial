@@ -1,0 +1,67 @@
+﻿@using UnidadResidencialProject.Components.Pages.Residentes
+
+<div class="tarjetas-wrap">
+
+    <!-- Stats generales -->
+    <div class="stats-row">
+        <div class="stat-chip blue">
+            <span class="stat-num">@Residentes.Count</span>
+            <span class="stat-lbl">Total residentes</span>
+        </div>
+        <div class="stat-chip green">
+            <span class="stat-num">@Residentes.Count(r => r.Activo)</span>
+            <span class="stat-lbl">Activos</span>
+        </div>
+        <div class="stat-chip purple">
+            <span class="stat-num">@Residentes.Count(r => r.Tipo == "Propietario")</span>
+            <span class="stat-lbl">Propietarios</span>
+        </div>
+        <div class="stat-chip teal">
+            <span class="stat-num">@Residentes.Count(r => r.Tipo == "Inquilino")</span>
+            <span class="stat-lbl">Inquilinos</span>
+        </div>
+        <div class="stat-chip amber">
+            <span class="stat-num">@Residentes.Select(r => r.Apartamento).Distinct().Count()</span>
+            <span class="stat-lbl">Unidades ocupadas</span>
+        </div>
+    </div>
+
+    <!-- Tarjetas por torre -->
+    <div class="torres-grid">
+        @foreach (var torre in Torres)
+        {
+            var ressTorre = Residentes.Where(r => r.Torre == torre).ToList();
+            var aptos = ressTorre.Select(r => r.Apartamento).Distinct().Count();
+            <div class="torre-card">
+                <div class="torre-header">
+                    <span class="torre-icon">🏢</span>
+                    <span class="torre-nombre">@torre</span>
+                </div>
+                <div class="torre-stats">
+                    <div class="ts-item">
+                        <span class="ts-num">@ressTorre.Count</span>
+                        <span class="ts-lbl">Residentes</span>
+                    </div>
+                    <div class="ts-item">
+                        <span class="ts-num">@aptos</span>
+                        <span class="ts-lbl">Aptos ocupados</span>
+                    </div>
+                    <div class="ts-item">
+                        <span class="ts-num">@ressTorre.Count(r => r.Tipo == "Propietario")</span>
+                        <span class="ts-lbl">Propietarios</span>
+                    </div>
+                    <div class="ts-item">
+                        <span class="ts-num">@ressTorre.Count(r => r.Tipo == "Inquilino")</span>
+                        <span class="ts-lbl">Inquilinos</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
+
+@code {
+    [Parameter] public List<Residentes.ResidenteItem> Residentes { get; set; } = new();
+    [Parameter] public List<string> Torres { get; set; } = new();
+}

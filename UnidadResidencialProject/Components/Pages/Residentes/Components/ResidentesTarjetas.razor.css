@@ -1,0 +1,120 @@
+﻿.tarjetas-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+}
+
+.stats-row {
+    display: flex;
+    gap: .75rem;
+    flex-wrap: wrap;
+}
+
+.stat-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: .75rem 1.5rem;
+    border-radius: var(--radius);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    min-width: 110px;
+}
+
+.stat-num {
+    font-size: 1.7rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.stat-lbl {
+    font-size: .68rem;
+    color: var(--text3);
+    margin-top: 3px;
+}
+
+.stat-chip.blue .stat-num {
+    color: var(--c-blue);
+}
+
+.stat-chip.green .stat-num {
+    color: var(--c-green);
+}
+
+.stat-chip.purple .stat-num {
+    color: var(--c-purple);
+}
+
+.stat-chip.teal .stat-num {
+    color: var(--c-teal);
+}
+
+.stat-chip.amber .stat-num {
+    color: var(--c-amber);
+}
+
+.torres-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: .75rem;
+}
+
+.torre-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    padding: 1rem;
+    transition: transform .15s;
+}
+
+    .torre-card:hover {
+        transform: translateY(-2px);
+    }
+
+.torre-header {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: .75rem;
+    padding-bottom: .75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.torre-icon {
+    font-size: 1.3rem;
+}
+
+.torre-nombre {
+    font-size: .9rem;
+    font-weight: 700;
+}
+
+.torre-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .5rem;
+}
+
+.ts-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: .4rem;
+    background: var(--bg);
+    border-radius: 8px;
+}
+
+.ts-num {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--c-blue);
+}
+
+.ts-lbl {
+    font-size: .62rem;
+    color: var(--text3);
+    text-align: center;
+    margin-top: 1px;
+}

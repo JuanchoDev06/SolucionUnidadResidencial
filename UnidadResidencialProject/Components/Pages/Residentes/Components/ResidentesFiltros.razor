@@ -1,0 +1,43 @@
+﻿<div class="filtros-bar">
+    <div class="filtros-grupo">
+        <span class="filtros-label">Torre:</span>
+        <select class="filtro-select" @bind="_torreLocal" @bind:after="EmitTorre">
+            <option value="Todas">Todas las torres</option>
+            @foreach (var t in Torres)
+            {
+                <option value="@t">@t</option>
+            }
+        </select>
+    </div>
+    <div class="filtros-grupo">
+        <span class="filtros-label">Tipo:</span>
+        @foreach (var tipo in _tipos)
+        {
+            <button class="filtro-btn @(FiltroTipo == tipo.Key ? "active " + tipo.Css : "")"
+                    @onclick="@(() => OnTipoChanged.InvokeAsync(tipo.Key))">
+                <span class="fdot @tipo.Css"></span>
+                @tipo.Key
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string FiltroTorre { get; set; } = "Todas";
+    [Parameter] public string FiltroTipo { get; set; } = "Todos";
+    [Parameter] public List<string> Torres { get; set; } = new();
+    [Parameter] public EventCallback<string> OnTorreChanged { get; set; }
+    [Parameter] public EventCallback<string> OnTipoChanged { get; set; }
+
+    private string _torreLocal = "Todas";
+
+    private record TipoOption(string Key, string Css);
+    private List<TipoOption> _tipos = new()
+    {
+        new("Todos",       "todos"),
+        new("Propietario", "propietario"),
+        new("Inquilino",   "inquilino"),
+    };
+
+    private async Task EmitTorre() => await OnTorreChanged.InvokeAsync(_torreLocal);
+}

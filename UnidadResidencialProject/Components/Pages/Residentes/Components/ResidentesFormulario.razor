@@ -1,0 +1,97 @@
+﻿@using UnidadResidencialProject.Components.Pages.Residentes
+
+<div class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2 class="modal-title">Registrar Residente</h2>
+            <button class="modal-close" @onclick="OnCancelar">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Nombre Completo</label>
+                    <input class="form-control" type="text"
+                           placeholder="Ej: María López" @bind="_nombre" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Documento</label>
+                    <input class="form-control" type="text"
+                           placeholder="Ej: 52.123.456" @bind="_documento" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input class="form-control" type="email"
+                           placeholder="Ej: maria@email.com" @bind="_email" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Teléfono</label>
+                    <input class="form-control" type="text"
+                           placeholder="Ej: 310-111-2222" @bind="_telefono" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Torre</label>
+                    <select class="form-control" @bind="_torre">
+                        <option value="">— Seleccionar torre —</option>
+                        @foreach (var t in Torres)
+                        {
+                            <option value="@t">@t</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Apartamento</label>
+                    <input class="form-control" type="text"
+                           placeholder="Ej: Apto 302" @bind="_apartamento" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Tipo</label>
+                    <select class="form-control" @bind="_tipo">
+                        <option value="Propietario">Propietario</option>
+                        <option value="Inquilino">Inquilino</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fecha de Ingreso</label>
+                    <input class="form-control" type="text"
+                           value="@DateTime.Now.ToString("d MMM yyyy")" readonly />
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" @onclick="OnCancelar">Cancelar</button>
+            <button class="btn-save" @onclick="Guardar">Registrar Residente</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<string> Torres { get; set; } = new();
+    [Parameter] public EventCallback<Residentes.ResidenteItem> OnGuardar { get; set; }
+    [Parameter] public EventCallback OnCancelar { get; set; }
+
+    private string _nombre = "";
+    private string _documento = "";
+    private string _email = "";
+    private string _telefono = "";
+    private string _torre = "";
+    private string _apartamento = "";
+    private string _tipo = "Propietario";
+
+    private async Task Guardar()
+    {
+        if (string.IsNullOrWhiteSpace(_nombre) || string.IsNullOrWhiteSpace(_torre)) return;
+
+        var nuevo = new Residentes.ResidenteItem(
+            0, _nombre, _documento, _email, _telefono,
+            _torre, _apartamento, _tipo, true,
+            DateTime.Now.ToString("d MMM yyyy"));
+
+        await OnGuardar.InvokeAsync(nuevo);
+    }
+}

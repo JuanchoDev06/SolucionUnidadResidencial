@@ -1,0 +1,71 @@
+﻿@using UnidadResidencialProject.Components.Pages.Residentes
+
+<div class="tabla-panel">
+    <div class="panel-header">
+        <h2 class="panel-title">Listado de Residentes</h2>
+        <span class="panel-sub">@Residentes.Count residentes encontrados</span>
+    </div>
+    <div class="tabla-wrap">
+        <table class="res-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Documento</th>
+                    <th>Contacto</th>
+                    <th>Torre</th>
+                    <th>Apartamento</th>
+                    <th>Tipo</th>
+                    <th>Ingreso</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Residentes)
+                {
+                    <tr class="@(!r.Activo ? "row-inactivo" : "")">
+                        <td class="td-id">@r.Id</td>
+                        <td>
+                            <div class="residente-cell">
+                                <div class="avatar">@r.Nombre[0]</div>
+                                <span class="td-nombre">@r.Nombre</span>
+                            </div>
+                        </td>
+                        <td class="td-mono">@r.Documento</td>
+                        <td>
+                            <div class="contacto-cell">
+                                <span class="td-email">@r.Email</span>
+                                <span class="td-tel">@r.Telefono</span>
+                            </div>
+                        </td>
+                        <td><span class="torre-tag">@r.Torre</span></td>
+                        <td><span class="apto-tag">@r.Apartamento</span></td>
+                        <td>
+                            <span class="tipo-tag @(r.Tipo == "Propietario" ? "propietario" : "inquilino")">
+                                @r.Tipo
+                            </span>
+                        </td>
+                        <td class="td-mono">@r.FechaIngreso</td>
+                        <td>
+                            <span class="estado-tag @(r.Activo ? "activo" : "inactivo")">
+                                @(r.Activo ? "Activo" : "Inactivo")
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn-toggle @(r.Activo ? "desactivar" : "activar")"
+                                    @onclick="@(() => OnDesactivar.InvokeAsync(r.Id))">
+                                @(r.Activo ? "Desactivar" : "Activar")
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<Residentes.ResidenteItem> Residentes { get; set; } = new();
+    [Parameter] public EventCallback<int> OnDesactivar { get; set; }
+}
