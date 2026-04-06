@@ -179,3 +179,20 @@
     font-size: .9rem;
     cursor: pointer;
 }
+
+.logout-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(255,255,255,.3);
+    font-size: 1rem;
+    padding: .25rem;
+    border-radius: 6px;
+    transition: color .15s, background .15s;
+    line-height: 1;
+}
+
+    .logout-btn:hover {
+        color: #fff;
+        background: rgba(220,38,38,.3);
+    }

@@ -32,12 +32,12 @@
 
             <div class="login-form">
                 <div class="form-group">
-                    <label class="form-label">Correo electrónico</label>
+                    <label class="form-label">Documento</label>
                     <div class="input-wrap">
-                        <span class="input-icon">✉</span>
+                        <span class="input-icon">🪪</span>
                         <input class="form-control @(_errorVisible ? "input-error" : "")"
-                               type="email"
-                               placeholder="admin@residencia.com"
+                               type="text"
+                               placeholder="Ej: 900123456"
                                @bind="_email"
                                @onkeydown="@HandleKeyDown" />
                     </div>
@@ -61,7 +61,7 @@
                 @if (_errorVisible)
                 {
                     <div class="error-msg">
-                        ⚠ Credenciales incorrectas. Verifica tu email y contraseña.
+                        ⚠ Credenciales incorrectas. Verifica tu documento y contraseña.
                     </div>
                 }
 

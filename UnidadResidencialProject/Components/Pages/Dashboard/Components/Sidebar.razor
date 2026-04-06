@@ -1,4 +1,8 @@
-﻿<aside class="sidebar">
+﻿@inject AuthService AuthService
+@inject NavigationManager Nav
+
+
+<aside class="sidebar">
     <div class="sidebar-brand">
         <div class="brand-icon">
             <svg viewBox="0 0 32 32" fill="none">
@@ -15,7 +19,6 @@
             <span class="brand-sub">Torre Laureles · NIT 900.123.456</span>
         </div>
     </div>
-
     <nav class="sidebar-nav">
         <div class="nav-section-label">General</div>
         <a class="nav-item active" href="/">
@@ -31,7 +34,6 @@
             <span class="nav-icon">▦</span>
             <span>Apartamentos</span>
         </a>
-
         <div class="nav-section-label" style="margin-top:1.5rem">Operaciones</div>
         <a class="nav-item" href="/ingresos">
             <span class="nav-icon">⇌</span>
@@ -52,22 +54,12 @@
             <span class="nav-icon">◷</span>
             <span>Reservas</span>
         </a>
-
         <div class="nav-section-label" style="margin-top:1.5rem">Administración</div>
         <a class="nav-item" href="/mantenimiento">
             <span class="nav-icon">⚙</span>
             <span>Mantenimiento</span>
         </a>
-        <a class="nav-item" href="/vigilancia">
-            <span class="nav-icon">◉</span>
-            <span>Vigilancia</span>
-        </a>
-        <a class="nav-item" href="/zonascomunes">
-            <span class="nav-icon">⬙</span>
-            <span>Zonas Comunes</span>
-        </a>
     </nav>
-
     <div class="sidebar-footer">
         <div class="user-chip">
             <div class="user-avatar">AD</div>
@@ -75,7 +67,15 @@
                 <span class="user-name">Administrador</span>
                 <span class="user-role">Superusuario</span>
             </div>
-            <span class="logout-icon">⏻</span>
+            <button class="logout-btn" @onclick="CerrarSesion" title="Cerrar sesión">⏻</button>
         </div>
     </div>
 </aside>
+
+@code {
+    private async Task CerrarSesion()
+    {
+        await AuthService.LogoutAsync();
+        Nav.NavigateTo("/login");
+    }
+}

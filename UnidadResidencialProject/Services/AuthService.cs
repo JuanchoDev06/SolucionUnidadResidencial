@@ -21,8 +21,8 @@ namespace UnidadResidencialProject.Services
             {
                 var response = await _http.PostAsJsonAsync("api/Auth/login", new
                 {
-                    username = email,
-                    password = password
+                    Documento = email,
+                    Password = password
                 });
 
                 if (!response.IsSuccessStatusCode) return false;
@@ -43,15 +43,33 @@ namespace UnidadResidencialProject.Services
         }
 
         public async Task<string?> GetTokenAsync()
-            => await _js.InvokeAsync<string>("localStorage.getItem", "jwt_token");
-
-        public async Task LogoutAsync()
-            => await _js.InvokeVoidAsync("localStorage.removeItem", "jwt_token");
+        {
+            try
+            {
+                return await _js.InvokeAsync<string>("localStorage.getItem", "jwt_token");
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
         public async Task<bool> IsAuthenticatedAsync()
         {
-            var token = await GetTokenAsync();
-            return !string.IsNullOrEmpty(token);
+            try
+            {
+                var token = await GetTokenAsync();
+                return !string.IsNullOrEmpty(token);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task LogoutAsync()
+        {
+            await _js.InvokeVoidAsync("localStorage.removeItem", "jwt_token");
         }
     }
 }
