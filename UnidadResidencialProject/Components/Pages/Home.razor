@@ -1,0 +1,16 @@
+﻿@page "/"
+@inject NavigationManager Nav
+@inject AuthService AuthService
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (await AuthService.IsAuthenticatedAsync())
+                Nav.NavigateTo("/dashboard");
+            else
+                Nav.NavigateTo("/login");
+        }
+    }
+}

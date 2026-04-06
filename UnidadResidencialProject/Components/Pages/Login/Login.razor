@@ -1,0 +1,157 @@
+﻿@page "/Login"
+@inject AuthService AuthService
+@inject NavigationManager Nav
+
+<PageTitle>Iniciar Sesión — ResidenciaPro</PageTitle>
+
+<div class="login-shell">
+
+    <div class="login-left">
+        <div class="login-brand">
+            <div class="brand-icon">
+                <svg viewBox="0 0 32 32" fill="none">
+                    <rect x="2" y="12" width="10" height="18" rx="1" fill="currentColor" opacity=".9" />
+                    <rect x="14" y="6" width="16" height="24" rx="1" fill="currentColor" />
+                    <rect x="17" y="14" width="4" height="4" rx=".5" fill="white" opacity=".6" />
+                    <rect x="23" y="14" width="4" height="4" rx=".5" fill="white" opacity=".6" />
+                    <rect x="17" y="20" width="4" height="4" rx=".5" fill="white" opacity=".6" />
+                    <rect x="23" y="20" width="4" height="4" rx=".5" fill="white" opacity=".6" />
+                </svg>
+            </div>
+            <div class="brand-text">
+                <span class="brand-name">ResidenciaPro</span>
+                <span class="brand-sub">Sistema de Gestión Residencial</span>
+            </div>
+        </div>
+
+        <div class="login-card">
+            <div class="login-card-header">
+                <h1 class="login-title">Bienvenido</h1>
+                <p class="login-subtitle">Ingresa tus credenciales para continuar</p>
+            </div>
+
+            <div class="login-form">
+                <div class="form-group">
+                    <label class="form-label">Correo electrónico</label>
+                    <div class="input-wrap">
+                        <span class="input-icon">✉</span>
+                        <input class="form-control @(_errorVisible ? "input-error" : "")"
+                               type="email"
+                               placeholder="admin@residencia.com"
+                               @bind="_email"
+                               @onkeydown="@HandleKeyDown" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <div class="input-wrap">
+                        <span class="input-icon">🔒</span>
+                        <input class="form-control @(_errorVisible ? "input-error" : "")"
+                               type="@(_mostrarPassword ? "text" : "password")"
+                               placeholder="••••••••"
+                               @bind="_password"
+                               @onkeydown="@HandleKeyDown" />
+                        <button class="toggle-pwd" @onclick="@(() => _mostrarPassword = !_mostrarPassword)">
+                            @(_mostrarPassword ? "🙈" : "👁")
+                        </button>
+                    </div>
+                </div>
+
+                @if (_errorVisible)
+                {
+                    <div class="error-msg">
+                        ⚠ Credenciales incorrectas. Verifica tu email y contraseña.
+                    </div>
+                }
+
+                <button class="btn-login @(_cargando ? "loading" : "")"
+                        @onclick="HandleLogin"
+                        disabled="@_cargando">
+                    @if (_cargando)
+                    {
+                        <span class="spinner"></span>
+                        <span>Verificando...</span>
+                    }
+                    else
+                    {
+                        <span>Ingresar al Sistema</span>
+                    }
+                </button>
+            </div>
+
+            <div class="login-footer">
+                <span>Torre Laureles · NIT 900.123.456</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="login-right">
+        <div class="login-right-content">
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="feature-icon">⊞</span>
+                    <span>Dashboard con métricas en tiempo real</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">⇌</span>
+                    <span>Control de acceso de residentes</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">⬡</span>
+                    <span>Gestión de parqueadero</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">◻</span>
+                    <span>Control de mensajería y paquetes</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">◷</span>
+                    <span>Reservas de zonas comunes</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">⚙</span>
+                    <span>Programación de mantenimientos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    private string _email = "";
+    private string _password = "";
+    private bool _cargando = false;
+    private bool _errorVisible = false;
+    private bool _mostrarPassword = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Si ya tiene token válido redirige directo al dashboard
+        if (await AuthService.IsAuthenticatedAsync())
+            Nav.NavigateTo("/dashboard");
+    }
+
+    private async Task HandleLogin()
+    {
+        if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password)) return;
+
+        _cargando = true;
+        _errorVisible = false;
+
+        var exito = await AuthService.LoginAsync(_email, _password);
+
+        _cargando = false;
+
+        if (exito)
+            Nav.NavigateTo("/dashboard");
+        else
+            _errorVisible = true;
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await HandleLogin();
+    }
+}
