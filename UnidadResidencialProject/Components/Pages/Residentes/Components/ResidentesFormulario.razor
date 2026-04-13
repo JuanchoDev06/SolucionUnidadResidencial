@@ -93,7 +93,8 @@
 
     private async Task Guardar()
     {
-        if (string.IsNullOrWhiteSpace(_nombre) || string.IsNullOrWhiteSpace(_documento)) return;
+        if (string.IsNullOrWhiteSpace(_nombre) || string.IsNullOrWhiteSpace(_documento) || string.IsNullOrWhiteSpace(_password)) 
+            return;
 
         int rolAsignado = _tipo == "Propietario" ? 2 : 3;
 
