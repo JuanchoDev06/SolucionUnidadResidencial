@@ -1,4 +1,5 @@
 ﻿@using UnidadResidencialProject.Components.Pages.Parqueadero
+@using UnidadResidencialProject.Models
 
 <div class="modal-overlay">
     <div class="modal-box">
@@ -10,17 +11,27 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Nombre del Residente</label>
-                    <input class="form-control" type="text" placeholder="Ej: Juan Pérez" @bind="_residente" />
+                    <input class="form-control" type="text"
+                           placeholder="Ej: Juan Pérez" @bind="_residente" />
                 </div>
                 <div class="form-group">
                     <label class="form-label">Placa del Vehículo</label>
-                    <input class="form-control" type="text" placeholder="Ej: ABC-123" @bind="_placa" />
+                    <input class="form-control" type="text"
+                           placeholder="Ej: ABC-123" @bind="_placa" />
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Apartamento</label>
-                    <input class="form-control" type="text" placeholder="Ej: Apto 205" @bind="_apto" />
+                    <select class="form-control" @bind="_aptoId">
+                        <option value="0">— Seleccionar apartamento —</option>
+                        @foreach (var a in Apartamentos)
+                        {
+                            <option value="@a.UnidadId">
+                                @(a.Torre?.Nombre ?? "") — Apto @a.Numero
+                            </option>
+                        }
+                    </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Cupo a Asignar</label>
@@ -43,17 +54,28 @@
 
 @code {
     [Parameter] public List<Parqueadero.CupoItem> CuposDisponibles { get; set; } = new();
-    [Parameter] public EventCallback<(int, string, string)> OnGuardar { get; set; }
+    [Parameter] public List<ApartamentoDto> Apartamentos { get; set; } = new();
+
+    // ← Tupla actualizada con UnidadId
+    [Parameter] public EventCallback<(int CupoId, string Residente, string Placa, int UnidadId)> OnGuardar { get; set; }
     [Parameter] public EventCallback OnCancelar { get; set; }
 
     private string _residente = "";
     private string _placa = "";
-    private string _apto = "";
+    private int _aptoId = 0;
     private int _cupoId = 0;
 
     private async Task Guardar()
     {
         if (_cupoId > 0 && !string.IsNullOrWhiteSpace(_residente))
-            await OnGuardar.InvokeAsync((_cupoId, $"{_residente} · {_apto}", _placa.ToUpper()));
+        {
+            var apto = Apartamentos.FirstOrDefault(a => a.UnidadId == _aptoId);
+            var aptoLabel = apto != null
+                ? $"{apto.Torre?.Nombre} — Apto {apto.Numero}"
+                : "Sin apartamento";
+
+            // ← Ahora pasa UnidadId directamente
+            await OnGuardar.InvokeAsync((_cupoId, $"{_residente} · {aptoLabel}", _placa.ToUpper(), _aptoId));
+        }
     }
 }

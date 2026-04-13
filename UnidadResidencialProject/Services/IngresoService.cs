@@ -69,5 +69,13 @@ namespace UnidadResidencialProject.Services
             var body = await response.Content.ReadAsStringAsync();
             return (false, $"HTTP {(int)response.StatusCode}: {body}");
         }
+
+        // ── GET /api/Apartamentos ──
+        public async Task<List<ApartamentoDto>> GetApartamentosAsync()
+        {
+            await SetAuthHeaderAsync();
+            var result = await _http.GetFromJsonAsync<List<ApartamentoDto>>("api/Apartamentos");
+            return result ?? new List<ApartamentoDto>();
+        }
     }
 }

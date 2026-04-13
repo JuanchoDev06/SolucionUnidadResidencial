@@ -39,8 +39,16 @@
                                 <span class="td-tel">@r.Telefono</span>
                             </div>
                         </td>
-                        <td><span class="torre-tag">N/A</span></td>
-                        <td><span class="apto-tag">N/A</span></td>
+                        <td>
+                            <span class="torre-tag">
+                                @(r.ResidentesUnidad?.FirstOrDefault()?.Unidad?.Torre?.Nombre ?? "N/A")
+                            </span>
+                        </td>
+                        <td>
+                            <span class="apto-tag">
+                                @(r.ResidentesUnidad?.FirstOrDefault()?.Unidad?.Numero ?? "N/A")
+                            </span>
+                        </td>
                         <td>
                             <span class="tipo-tag @(r.Rol?.Nombre?.ToLower() == "propietario" ? "propietario" : "inquilino")">
                                 @(r.Rol?.Nombre ?? "N/A")

@@ -1,9 +1,9 @@
 @page "/ingresos"
 @using UnidadResidencialProject.Components.Pages.Acceso.Components
 @using UnidadResidencialProject.Components.Pages.Dashboard.Components
+@using UnidadResidencialProject.Models
 @inject IngresoService IngresoService
 @inject AuthService AuthService
-
 
 <PageTitle>Control de Acceso — Conjunto Residencial</PageTitle>
 
@@ -37,7 +37,9 @@
             {
                 <div class="stats-row">
                     <p style="color: #DC2626;">@_error</p>
-                    <button class="btn-primary" style="margin-left: 1rem;" @onclick="CargarIngresos">Reintentar</button>
+                    <button class="btn-primary" style="margin-left: 1rem;" @onclick="CargarIngresos">
+                        Reintentar
+                    </button>
                 </div>
             }
             else
@@ -76,7 +78,8 @@
 
         @if (_mostrarFormulario)
         {
-            <AccesoFormulario OnGuardar="@GuardarIngreso"
+            <AccesoFormulario Apartamentos="@_apartamentos"
+                              OnGuardar="@GuardarIngreso"
                               OnCancelar="@(() => _mostrarFormulario = false)" />
         }
 
@@ -90,6 +93,7 @@
     private string? _error;
 
     private List<IngresoDto> _ingresos = new();
+    private List<ApartamentoDto> _apartamentos = new();  // ← nuevo
 
     private List<IngresoDto> IngresosFiltrados =>
         _filtroTipo == "Todos"
@@ -99,6 +103,7 @@
     protected override async Task OnInitializedAsync()
     {
         await CargarIngresos();
+        await CargarApartamentos();  // ← nuevo
     }
 
     private async Task CargarIngresos()
@@ -119,13 +124,23 @@
         }
     }
 
+    private async Task CargarApartamentos() 
+    {
+        try
+        {
+            _apartamentos = await IngresoService.GetApartamentosAsync();
+        }
+        catch { }
+    }
+
     private void AbrirFormulario() => _mostrarFormulario = true;
+
+    
 
     private async Task GuardarIngreso(IngresoCreateDto nuevo)
     {
         try
         {
-            // Obtener el userId del usuario logueado
             var userId = await AuthService.GetUserIdAsync();
             nuevo.UsuarioId = userId;
             nuevo.FechaHoraIngreso = DateTime.Now;
@@ -145,7 +160,6 @@
         {
             _error = $"Error al guardar: {ex.Message}";
         }
-
         _mostrarFormulario = false;
     }
 

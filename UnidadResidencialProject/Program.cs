@@ -14,6 +14,7 @@ builder.Services.AddScoped(sp => new HttpClient
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IngresoService>();
 builder.Services.AddScoped<ResidenteService>();
+builder.Services.AddScoped<ParqueaderoService>();
 
 var app = builder.Build();
 
