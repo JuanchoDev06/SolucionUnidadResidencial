@@ -49,11 +49,6 @@
                 </div>
             </div>
             <div class="form-row">
-               <div class="form-group">
-                    <label class="form-label">Contraseña</label>
-                    <input class="form-control" type="password"
-                           placeholder="****" @bind="_password" />
-                </div>
                 <div class="form-group">
                     <label class="form-label">Tipo</label>
                     <select class="form-control" @bind="_tipo">
@@ -61,13 +56,11 @@
                         <option value="Inquilino">Inquilino</option>
                     </select>
                 </div>
-            </div>
-            <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Fecha de Ingreso</label>
                     <input class="form-control" type="text"
                            value="@DateTime.Now.ToString("d MMM yyyy")" readonly />
-                </div>
+            </div>
             </div>
         </div>
         <div class="modal-footer">
@@ -88,12 +81,11 @@
     private string _telefono = "";
     private string _torre = "";
     private string _apartamento = "";
-    private string _password = "";
     private string _tipo = "Propietario";
 
     private async Task Guardar()
     {
-        if (string.IsNullOrWhiteSpace(_nombre) || string.IsNullOrWhiteSpace(_documento) || string.IsNullOrWhiteSpace(_password)) 
+        if (string.IsNullOrWhiteSpace(_nombre) || string.IsNullOrWhiteSpace(_documento)) 
             return;
 
         int rolAsignado = _tipo == "Propietario" ? 2 : 3;
@@ -104,7 +96,7 @@
             Documento = _documento,
             Email = _email,
             Telefono = _telefono,
-            PasswordHash = _password,
+            PasswordHash = _documento, // Usa el documento como contraseña temporal
             RolId = rolAsignado,
             Activo = true,
             FechaCreacion = DateTime.Now
