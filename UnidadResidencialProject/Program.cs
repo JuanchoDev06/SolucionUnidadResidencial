@@ -14,7 +14,10 @@ builder.Services.AddScoped(sp => new HttpClient
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IngresoService>();
 builder.Services.AddScoped<ResidenteService>();
-builder.Services.AddScoped<ParqueaderoService>();
+builder.Services.AddScoped<ParqueaderoService>(); // Re-add if it was here, I see we have AppDtos.cs with Parqueadero
+builder.Services.AddScoped<MantenimientoService>();
+builder.Services.AddScoped<MensajeriaService>();
+builder.Services.AddScoped<ReservaService>();
 
 var app = builder.Build();
 

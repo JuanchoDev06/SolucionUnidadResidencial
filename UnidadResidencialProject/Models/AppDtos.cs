@@ -1,4 +1,4 @@
-﻿namespace UnidadResidencialProject.Models
+namespace UnidadResidencialProject.Models
 {
     // ── Shared ────────────────────────────────────────────
     public class RolDto
@@ -126,5 +126,92 @@
         public DateTime FechaHoraIngreso { get; set; } = DateTime.Now;
         public DateTime? FechaHoraSalida { get; set; }
         public int? IngresoId { get; set; }
+    }
+
+    // ── Mantenimiento ───────────────────────────────────────
+    public class TipoMantenimientoDto
+    {
+        public int TipoMantenimientoId { get; set; }
+        public string Nombre { get; set; } = "";
+    }
+
+    public class ZonaComunDto
+    {
+        public int ZonaComunId { get; set; }
+        public string Nombre { get; set; } = "";
+        public bool RequierePago { get; set; }
+        public decimal? ValorHora { get; set; }
+    }
+
+    public class MantenimientoDto
+    {
+        public int MantenimientoId { get; set; }
+        public int TipoMantenimientoId { get; set; }
+        public DateTime Fecha { get; set; }
+        public string? Proveedor { get; set; }
+        public string? Descripcion { get; set; }
+        public decimal? Costo { get; set; }
+        public int? ZonaComunId { get; set; }
+        public string? Estado { get; set; } = "Pendiente";
+        public TipoMantenimientoDto? TipoMantenimiento { get; set; }
+        public ZonaComunDto? ZonaComun { get; set; }
+    }
+
+    public class MantenimientoCreateDto
+    {
+        public int TipoMantenimientoId { get; set; }
+        public DateTime Fecha { get; set; } = DateTime.Now;
+        public string? Proveedor { get; set; }
+        public string? Descripcion { get; set; }
+        public decimal? Costo { get; set; }
+        public int? ZonaComunId { get; set; }
+    }
+
+    // ── Mensajería ──────────────────────────────────────────
+    public class MensajeriaDto
+    {
+        public int MensajeriaId { get; set; }
+        public string? Empresa { get; set; }
+        public string? Guia { get; set; }
+        public DateTime FechaRecepcion { get; set; }
+        public DateTime? FechaEntrega { get; set; }
+        public int UnidadId { get; set; }
+        public int UsuarioId { get; set; }
+        public ApartamentoDto? Unidad { get; set; }
+        public UsuarioDto? Vigilante { get; set; }
+    }
+
+    public class MensajeriaCreateDto
+    {
+        public string? Empresa { get; set; }
+        public string? Guia { get; set; }
+        public DateTime FechaRecepcion { get; set; } = DateTime.Now;
+        public DateTime? FechaEntrega { get; set; }
+        public int UnidadId { get; set; }
+        public int UsuarioId { get; set; }
+    }
+
+    // ── Reservas ────────────────────────────────────────────
+    public class ReservaDto
+    {
+        public int ReservaId { get; set; }
+        public int ZonaComunId { get; set; }
+        public int UsuarioId { get; set; }
+        public DateTime Fecha { get; set; }
+        public TimeSpan HoraInicio { get; set; }
+        public TimeSpan HoraFin { get; set; }
+        public string Estado { get; set; } = "";
+        public ZonaComunDto? ZonaComun { get; set; }
+        public UsuarioDto? Usuario { get; set; }
+    }
+
+    public class ReservaCreateDto
+    {
+        public int ZonaComunId { get; set; }
+        public int UsuarioId { get; set; }
+        public DateTime Fecha { get; set; } = DateTime.Now;
+        public TimeSpan HoraInicio { get; set; }
+        public TimeSpan HoraFin { get; set; }
+        public string Estado { get; set; } = "Pendiente";
     }
 }

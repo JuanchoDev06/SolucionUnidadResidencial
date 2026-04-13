@@ -1,4 +1,4 @@
-﻿@using UnidadResidencialProject.Components.Pages.Mantenimiento
+@using UnidadResidencialProject.Models
 
 <div class="modal-overlay">
     <div class="modal-box">
@@ -10,21 +10,21 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Tipo de Mantenimiento</label>
-                    <select class="form-control" @bind="_tipo">
-                        <option value="">— Seleccionar tipo —</option>
+                    <select class="form-control" @bind="_tipoId">
+                        <option value="0">— Seleccionar tipo —</option>
                         @foreach (var t in Tipos)
                         {
-                            <option value="@t">@t</option>
+                            <option value="@t.TipoMantenimientoId">@t.Nombre</option>
                         }
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Zona Común</label>
-                    <select class="form-control" @bind="_zona">
-                        <option value="">— Seleccionar zona —</option>
+                    <select class="form-control" @bind="_zonaId">
+                        <option value="0">— Seleccionar zona —</option>
                         @foreach (var z in ZonasComunes)
                         {
-                            <option value="@z">@z</option>
+                            <option value="@z.ZonaComunId">@z.Nombre</option>
                         }
                     </select>
                 </div>
@@ -52,13 +52,6 @@
                     <input class="form-control" type="number"
                            placeholder="Ej: 500000" @bind="_costo" />
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Estado Inicial</label>
-                    <select class="form-control" @bind="_estado">
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="En curso">En curso</option>
-                    </select>
-                </div>
             </div>
         </div>
         <div class="modal-footer">
@@ -69,27 +62,32 @@
 </div>
 
 @code {
-    [Parameter] public List<string> Tipos { get; set; } = new();
-    [Parameter] public List<string> ZonasComunes { get; set; } = new();
-    [Parameter] public EventCallback<Mantenimiento.MantenimientoItem> OnGuardar { get; set; }
+    [Parameter] public List<TipoMantenimientoDto> Tipos { get; set; } = new();
+    [Parameter] public List<ZonaComunDto> ZonasComunes { get; set; } = new();
+    [Parameter] public EventCallback<MantenimientoCreateDto> OnGuardar { get; set; }
     [Parameter] public EventCallback OnCancelar { get; set; }
 
-    private string _tipo = "";
-    private string _zona = "";
+    private int _tipoId = 0;
+    private int _zonaId = 0;
     private string _descripcion = "";
     private string _proveedor = "";
     private DateTime _fecha = DateTime.Today.AddDays(3);
     private decimal _costo = 0;
-    private string _estado = "Pendiente";
+    // Estado inicial en backend (aunque no esté en el create DTO explícitamente se puede manejar en el backend)
 
     private async Task Guardar()
     {
-        if (string.IsNullOrWhiteSpace(_tipo) || string.IsNullOrWhiteSpace(_zona)) return;
+        if (_tipoId <= 0 || _zonaId <= 0) return;
 
-        var nuevo = new Mantenimiento.MantenimientoItem(
-            0, _tipo, _zona, _descripcion, _proveedor,
-            _fecha.ToString("d MMM yyyy"),
-            _estado, _costo);
+        var nuevo = new MantenimientoCreateDto
+        {
+            TipoMantenimientoId = _tipoId,
+            ZonaComunId = _zonaId,
+            Descripcion = _descripcion,
+            Proveedor = _proveedor,
+            Fecha = _fecha,
+            Costo = _costo
+        };
 
         await OnGuardar.InvokeAsync(nuevo);
     }

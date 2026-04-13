@@ -1,4 +1,5 @@
-﻿@using UnidadResidencialProject.Components.Pages.Reservas
+@using UnidadResidencialProject.Components.Pages.Reservas
+@using UnidadResidencialProject.Models
 
 <div class="disp-panel">
     <div class="disp-header">
@@ -12,11 +13,11 @@
     </div>
 
     <div class="zonas-grid">
-        @foreach (var zona in _zonas)
+        @foreach (var zona in Zonas)
         {
             var reservasZona = Reservas
-            .Where(r => r.ZonaComun == zona.Nombre &&
-            r.Fecha == FechaSeleccionada.ToString("d MMM yyyy") &&
+            .Where(r => r.ZonaComun?.Nombre == zona.Nombre &&
+            r.Fecha.Date == FechaSeleccionada.Date &&
             r.Estado != "Cancelada")
             .ToList();
 
@@ -24,7 +25,8 @@
 
             <div class="zona-card @(ocupada ? "ocupada" : "libre")">
                 <div class="zona-top">
-                    <span class="zona-icon">@zona.Icono</span>
+                    <!-- Simple emoji mapping since we only have DTO now: -->
+                    <span class="zona-icon">@GetIcono(zona.Nombre)</span>
                     <span class="zona-estado-dot @(ocupada ? "ocupada" : "libre")"></span>
                 </div>
                 <span class="zona-nombre">@zona.Nombre</span>
@@ -34,7 +36,7 @@
                     <div class="zona-horarios">
                         @foreach (var r in reservasZona)
                         {
-                            <span class="horario-chip">@r.HoraInicio – @r.HoraFin</span>
+                            <span class="horario-chip">@r.HoraInicio.ToString(@"hh\:mm") – @r.HoraFin.ToString(@"hh\:mm")</span>
                         }
                     </div>
                 }
@@ -44,19 +46,20 @@
 </div>
 
 @code {
-    [Parameter] public List<Reservas.ReservaItem> Reservas { get; set; } = new();
+    [Parameter] public List<ReservaDto> Reservas { get; set; } = new();
+    [Parameter] public List<ZonaComunDto> Zonas { get; set; } = new();
     [Parameter] public DateTime FechaSeleccionada { get; set; } = DateTime.Today;
     [Parameter] public EventCallback<DateTime> OnFechaChanged { get; set; }
 
-    private record ZonaInfo(string Nombre, string Icono);
-    private List<ZonaInfo> _zonas = new()
+    private string GetIcono(string z) => z switch
     {
-        new("Salón Social", "🎉"),
-        new("BBQ",          "🔥"),
-        new("Piscina",      "🏊"),
-        new("Gimnasio",     "🏋️"),
-        new("Cancha",       "⚽"),
-        new("Terraza",      "🌅"),
-        new("Sala de Juegos","🎮"),
+        "Salón Social" => "🎉",
+        "BBQ" => "🔥",
+        "Piscina" => "🏊",
+        "Gimnasio" => "🏋️",
+        "Cancha" => "⚽",
+        "Terraza" => "🌅",
+        "Sala de Juegos" => "🎮",
+        _ => "📍"
     };
 }

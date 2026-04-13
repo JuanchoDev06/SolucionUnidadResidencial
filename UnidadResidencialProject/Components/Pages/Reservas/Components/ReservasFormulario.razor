@@ -1,4 +1,4 @@
-﻿@using UnidadResidencialProject.Components.Pages.Reservas
+@using UnidadResidencialProject.Models
 
 <div class="modal-overlay">
     <div class="modal-box">
@@ -10,11 +10,11 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Zona Común</label>
-                    <select class="form-control" @bind="_zona">
-                        <option value="">— Seleccionar zona —</option>
+                    <select class="form-control" @bind="_zonaId">
+                        <option value="0">— Seleccionar zona —</option>
                         @foreach (var z in Zonas)
                         {
-                            <option value="@z">@z</option>
+                            <option value="@z.ZonaComunId">@z.Nombre</option>
                         }
                     </select>
                 </div>
@@ -26,35 +26,17 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Hora Inicio</label>
-                    <input class="form-control" type="text"
-                           placeholder="Ej: 9:00 AM"
-                           @bind="_horaInicio" />
+                    <input class="form-control" type="time"
+                           @bind="_horaInicioTimeOnly" />
                 </div>
                 <div class="form-group">
                     <label class="form-label">Hora Fin</label>
-                    <input class="form-control" type="text"
-                           placeholder="Ej: 11:00 AM"
-                           @bind="_horaFin" />
+                    <input class="form-control" type="time"
+                           @bind="_horaFinTimeOnly" />
                 </div>
             </div>
+            <!-- Removemos residente y apartamento, los mandamos con UserId del backend -->
             <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Residente</label>
-                    <input class="form-control" type="text"
-                           placeholder="Ej: María López" @bind="_residente" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Apartamento</label>
-                    <input class="form-control" type="text"
-                           placeholder="Ej: Apto 302" @bind="_apartamento" />
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Valor por Hora ($)</label>
-                    <input class="form-control" type="number"
-                           placeholder="0 si es gratis" @bind="_valorHora" />
-                </div>
                 <div class="form-group">
                     <label class="form-label">Estado Inicial</label>
                     <select class="form-control" @bind="_estado">
@@ -67,7 +49,7 @@
             @if (_conflicto)
             {
                 <div class="alerta-conflicto">
-                    ⚠️ Ya existe una reserva para esa zona en ese horario. Verifica la disponibilidad.
+                    ⚠️ Ya existe una reserva para esa zona en ese horario predeterminado.
                 </div>
             }
         </div>
@@ -79,40 +61,46 @@
 </div>
 
 @code {
-    [Parameter] public List<string> Zonas { get; set; } = new();
-    [Parameter] public List<Reservas.ReservaItem> Reservas { get; set; } = new();
-    [Parameter] public EventCallback<Reservas.ReservaItem> OnGuardar { get; set; }
+    [Inject] private UnidadResidencialProject.Services.AuthService AuthService { get; set; } = default!;
+
+    [Parameter] public List<ZonaComunDto> Zonas { get; set; } = new();
+    [Parameter] public List<ReservaDto> Reservas { get; set; } = new();
+    [Parameter] public EventCallback<ReservaCreateDto> OnGuardar { get; set; }
     [Parameter] public EventCallback OnCancelar { get; set; }
 
-    private string _zona = "";
+    private int _zonaId = 0;
     private DateTime _fecha = DateTime.Today.AddDays(1);
-    private string _horaInicio = "09:00";
-    private string _horaFin = "11:00";
-    private string _residente = "";
-    private string _apartamento = "";
-    private decimal _valorHora = 0;
+    private TimeOnly _horaInicioTimeOnly = new TimeOnly(9, 0);
+    private TimeOnly _horaFinTimeOnly = new TimeOnly(11, 0);
     private string _estado = "Pendiente";
     private bool _conflicto = false;
 
     private async Task Guardar()
     {
-        if (string.IsNullOrWhiteSpace(_zona) || string.IsNullOrWhiteSpace(_residente)) return;
+        if (_zonaId <= 0) return;
 
-        var fechaStr = _fecha.ToString("d MMM yyyy");
+        var _horaInicio = _horaInicioTimeOnly.ToTimeSpan();
+        var _horaFin = _horaFinTimeOnly.ToTimeSpan();
+
+        var userId = await AuthService.GetUserIdAsync();
 
         _conflicto = Reservas.Any(r =>
-            r.ZonaComun == _zona &&
-            r.Fecha == fechaStr &&
-            r.Estado != "Cancelada");
+            r.ZonaComunId == _zonaId &&
+            r.Fecha.Date == _fecha.Date &&
+            r.Estado != "Cancelada" &&
+            ( (r.HoraInicio < _horaFin && r.HoraFin > _horaInicio) )
+        );
 
         if (_conflicto) return;
 
-        var nueva = new Reservas.ReservaItem(
-            0, _zona, _residente, _apartamento,
-            fechaStr,
-            _horaInicio,
-            _horaFin,
-            _estado, _valorHora);
+        var nueva = new ReservaCreateDto
+        {
+            ZonaComunId = _zonaId,
+            Fecha = _fecha,
+            HoraInicio = _horaInicio,
+            HoraFin = _horaFin,
+            UsuarioId = userId > 0 ? userId : 4
+        };
 
         await OnGuardar.InvokeAsync(nueva);
     }

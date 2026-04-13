@@ -1,4 +1,5 @@
-﻿@using UnidadResidencialProject.Components.Pages.Mantenimiento
+@using UnidadResidencialProject.Components.Pages.Mantenimiento
+@using UnidadResidencialProject.Models
 
 <div class="tarjetas-grid">
     @foreach (var tarjeta in GetTarjetas())
@@ -27,7 +28,7 @@
 </div>
 
 @code {
-    [Parameter] public List<Mantenimiento.MantenimientoItem> Mantenimientos { get; set; } = new();
+    [Parameter] public List<MantenimientoDto> Mantenimientos { get; set; } = new();
 
     private record TarjetaResumen(string Tipo, string Icono,
         int Pendientes, int EnCurso, int Completados);
@@ -48,11 +49,12 @@
         };
 
         return Mantenimientos
-            .GroupBy(m => m.Tipo)
+            .Where(m => m.TipoMantenimiento != null)
+            .GroupBy(m => m.TipoMantenimiento!.Nombre)
             .Select(g => new TarjetaResumen(
                 g.Key,
                 iconos.GetValueOrDefault(g.Key, "⚙️"),
-                g.Count(m => m.Estado == "Pendiente"),
+                g.Count(m => m.Estado == "Pendiente" || string.IsNullOrEmpty(m.Estado)),
                 g.Count(m => m.Estado == "En curso"),
                 g.Count(m => m.Estado == "Completado")))
             .ToList();

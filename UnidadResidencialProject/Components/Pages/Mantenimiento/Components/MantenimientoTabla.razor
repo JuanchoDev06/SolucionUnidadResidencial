@@ -1,4 +1,4 @@
-﻿@using UnidadResidencialProject.Components.Pages.Mantenimiento
+@using UnidadResidencialProject.Components.Pages.Mantenimiento
 
 <div class="tabla-panel">
     <div class="panel-header">
@@ -24,22 +24,22 @@
                 @foreach (var m in Mantenimientos)
                 {
                     <tr>
-                        <td class="td-id">@m.Id</td>
+                        <td class="td-id">@m.MantenimientoId</td>
                         <td>
-                            <span class="tipo-tag">@GetIcono(m.Tipo) @m.Tipo</span>
+                            <span class="tipo-tag">@GetIcono(m.TipoMantenimiento?.Nombre ?? "") @m.TipoMantenimiento?.Nombre</span>
                         </td>
-                        <td>@m.ZonaComun</td>
+                        <td>@m.ZonaComun?.Nombre</td>
                         <td class="td-desc">@m.Descripcion</td>
                         <td class="td-proveedor">@m.Proveedor</td>
-                        <td class="td-mono">@m.Fecha</td>
-                        <td class="td-mono td-costo">$@m.Costo.ToString("N0")</td>
+                        <td class="td-mono">@m.Fecha.ToString("d MMM yyyy")</td>
+                        <td class="td-mono td-costo">$@(m.Costo?.ToString("N0") ?? "0")</td>
                         <td>
-                            <span class="estado-tag @GetEstadoCss(m.Estado)">@m.Estado</span>
+                            <span class="estado-tag @GetEstadoCss(m.Estado ?? "Pendiente")">@(m.Estado ?? "Pendiente")</span>
                         </td>
                         <td>
                             <select class="accion-select"
-                                    value="@m.Estado"
-                                    @onchange="@((e) => OnCambiarEstado.InvokeAsync((m.Id, e.Value!.ToString()!)))">
+                                    value="@(m.Estado ?? "Pendiente")"
+                                    @onchange="@((e) => OnCambiarEstado.InvokeAsync((m.MantenimientoId, e.Value!.ToString()!)))">
                                 <option value="Pendiente">Pendiente</option>
                                 <option value="En curso">En curso</option>
                                 <option value="Completado">Completado</option>
@@ -53,7 +53,7 @@
 </div>
 
 @code {
-    [Parameter] public List<Mantenimiento.MantenimientoItem> Mantenimientos { get; set; } = new();
+    [Parameter] public List<MantenimientoDto> Mantenimientos { get; set; } = new();
     [Parameter] public EventCallback<(int, string)> OnCambiarEstado { get; set; }
 
     private string GetEstadoCss(string estado) => estado switch
