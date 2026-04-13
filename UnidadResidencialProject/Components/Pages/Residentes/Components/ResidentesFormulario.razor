@@ -34,18 +34,23 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Torre</label>
-                    <select class="form-control" @bind="_torre">
-                        <option value="">— Seleccionar torre —</option>
+                    <select class="form-control" @bind="_torreSeleccionada">
+                        <option value="0">— Seleccionar torre —</option>
                         @foreach (var t in Torres)
                         {
-                            <option value="@t">@t</option>
+                            <option value="@t.TorreId">@t.Nombre</option>
                         }
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Apartamento</label>
-                    <input class="form-control" type="text"
-                           placeholder="Ej: Apto 302" @bind="_apartamento" />
+                    <select class="form-control" @bind="_unidadId">
+                        <option value="0">— Seleccionar apartamento —</option>
+                        @foreach (var a in ApartamentosFiltrados)
+                        {
+                            <option value="@a.UnidadId">Apto @a.Numero</option>
+                        }
+                    </select>
                 </div>
             </div>
             <div class="form-row">
@@ -60,7 +65,7 @@
                     <label class="form-label">Fecha de Ingreso</label>
                     <input class="form-control" type="text"
                            value="@DateTime.Now.ToString("d MMM yyyy")" readonly />
-            </div>
+                </div>
             </div>
         </div>
         <div class="modal-footer">
@@ -71,24 +76,30 @@
 </div>
 
 @code {
-    [Parameter] public List<string> Torres { get; set; } = new();
-    [Parameter] public EventCallback<UsuarioCreateDto> OnGuardar { get; set; }
+    [Parameter] public List<TorreDto> Torres { get; set; } = new();
+    [Parameter] public List<ApartamentoDto> Apartamentos { get; set; } = new();
+    [Parameter] public EventCallback<(UsuarioCreateDto Usuario, int UnidadId, bool EsPropietario)> OnGuardar { get; set; }
     [Parameter] public EventCallback OnCancelar { get; set; }
 
     private string _nombre = "";
     private string _documento = "";
     private string _email = "";
     private string _telefono = "";
-    private string _torre = "";
-    private string _apartamento = "";
     private string _tipo = "Propietario";
+    private int _torreSeleccionada = 0;
+    private int _unidadId = 0;
+
+    private List<ApartamentoDto> ApartamentosFiltrados =>
+        _torreSeleccionada == 0
+            ? Apartamentos
+            : Apartamentos.Where(a => a.TorreId == _torreSeleccionada).ToList();
 
     private async Task Guardar()
     {
-        if (string.IsNullOrWhiteSpace(_nombre) || string.IsNullOrWhiteSpace(_documento)) 
+        if (string.IsNullOrWhiteSpace(_nombre) || string.IsNullOrWhiteSpace(_documento))
             return;
 
-        int rolAsignado = _tipo == "Propietario" ? 2 : 3;
+        var rolId = _tipo == "Propietario" ? 4 : 5; // RolId de Propietario e Inquilino
 
         var nuevo = new UsuarioCreateDto
         {
@@ -96,12 +107,12 @@
             Documento = _documento,
             Email = _email,
             Telefono = _telefono,
-            PasswordHash = _documento, // Usa el documento como contraseña temporal
-            RolId = rolAsignado,
+            PasswordHash = _documento,
+            RolId = rolId,
             Activo = true,
             FechaCreacion = DateTime.Now
         };
 
-        await OnGuardar.InvokeAsync(nuevo);
+        await OnGuardar.InvokeAsync((nuevo, _unidadId, _tipo == "Propietario"));
     }
 }

@@ -1,4 +1,5 @@
 ﻿@using UnidadResidencialProject.Components.Pages.Parqueadero
+@using UnidadResidencialProject.Models
 
 <div class="modal-overlay">
     <div class="modal-box">
@@ -10,17 +11,27 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Nombre del Visitante</label>
-                    <input class="form-control" type="text" placeholder="Ej: Luis Morales" @bind="_nombre" />
+                    <input class="form-control" type="text"
+                           placeholder="Ej: Luis Morales" @bind="_nombre" />
                 </div>
                 <div class="form-group">
                     <label class="form-label">Placa del Vehículo</label>
-                    <input class="form-control" type="text" placeholder="Ej: XYZ-987" @bind="_placa" />
+                    <input class="form-control" type="text"
+                           placeholder="Ej: XYZ-987" @bind="_placa" />
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Unidad que visita</label>
-                    <input class="form-control" type="text" placeholder="Ej: Apto 302" @bind="_unidad" />
+                    <select class="form-control" @bind="_unidadId">
+                        <option value="0">— Seleccionar apartamento —</option>
+                        @foreach (var a in Apartamentos)
+                        {
+                            <option value="@a.UnidadId">
+                                @(a.Torre?.Nombre ?? "") — Apto @a.Numero
+                            </option>
+                        }
+                    </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Asignar Cupo</label>
@@ -43,17 +54,25 @@
 
 @code {
     [Parameter] public List<Parqueadero.CupoItem> CuposDisponibles { get; set; } = new();
+    [Parameter] public List<ApartamentoDto> Apartamentos { get; set; } = new();
     [Parameter] public EventCallback<(int, string, string, string)> OnGuardar { get; set; }
     [Parameter] public EventCallback OnCancelar { get; set; }
 
     private string _nombre = "";
     private string _placa = "";
-    private string _unidad = "";
+    private int _unidadId = 0;
     private int _cupoId = 0;
 
     private async Task Guardar()
     {
         if (_cupoId > 0 && !string.IsNullOrWhiteSpace(_placa))
-            await OnGuardar.InvokeAsync((_cupoId, _placa.ToUpper(), _nombre, _unidad));
+        {
+            var apto = Apartamentos.FirstOrDefault(a => a.UnidadId == _unidadId);
+            var unidadLabel = apto != null
+                ? $"{apto.Torre?.Nombre} — Apto {apto.Numero}"
+                : "Visitante externo";
+
+            await OnGuardar.InvokeAsync((_cupoId, _placa.ToUpper(), _nombre, unidadLabel));
+        }
     }
 }

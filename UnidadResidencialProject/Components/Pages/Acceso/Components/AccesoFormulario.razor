@@ -6,7 +6,6 @@
             <h2 class="modal-title">Registrar Nuevo Ingreso</h2>
             <button class="modal-close" @onclick="OnCancelar">✕</button>
         </div>
-
         <div class="modal-body">
             <div class="form-row">
                 <div class="form-group">
@@ -18,30 +17,45 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Unidad / Apartamento</label>
-                    <input class="form-control" type="text" placeholder="Ej: 1, 204" @bind="_unidadId" />
+                    <label class="form-label">Portería</label>
+                    <select class="form-control" @bind="_porteria">
+                        <option>Portería Principal</option>
+                        <option>Portería Lateral</option>
+                    </select>
                 </div>
             </div>
-
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Nombre Completo</label>
-                    <input class="form-control" type="text" placeholder="Ej: Juan Pérez" @bind="_nombre" />
+                    <input class="form-control" type="text"
+                           placeholder="Ej: Juan Pérez" @bind="_nombre" />
                 </div>
                 <div class="form-group">
                     <label class="form-label">Documento</label>
-                    <input class="form-control" type="text" placeholder="Ej: 80.123.456" @bind="_documento" />
+                    <input class="form-control" type="text"
+                           placeholder="Ej: 80.123.456" @bind="_documento" />
                 </div>
             </div>
-
             <div class="form-row">
                 <div class="form-group">
+                    <label class="form-label">Unidad / Apartamento</label>
+                    <select class="form-control" @bind="_unidadId">
+                        <option value="">— Sin unidad asignada —</option>
+                        @foreach (var a in Apartamentos)
+                        {
+                            <option value="@a.UnidadId">
+                                @(a.Torre?.Nombre ?? "Sin torre") — Apto @a.Numero
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
                     <label class="form-label">Hora de Ingreso</label>
-                    <input class="form-control" type="text" value="@DateTime.Now.ToString("hh:mm tt")" readonly />
+                    <input class="form-control" type="text"
+                           value="@DateTime.Now.ToString("hh:mm tt")" readonly />
                 </div>
             </div>
         </div>
-
         <div class="modal-footer">
             <button class="btn-cancel" @onclick="OnCancelar">Cancelar</button>
             <button class="btn-save" @onclick="Guardar">Guardar Ingreso</button>
@@ -50,13 +64,15 @@
 </div>
 
 @code {
+    [Parameter] public List<ApartamentoDto> Apartamentos { get; set; } = new();
     [Parameter] public EventCallback<IngresoCreateDto> OnGuardar { get; set; }
     [Parameter] public EventCallback OnCancelar { get; set; }
 
     private string _tipo = "Residente";
+    private string _porteria = "Portería Principal";
     private string _nombre = "";
     private string _documento = "";
-    private int _unidadId = 0;
+    private string _unidadId = "";
 
     private async Task Guardar()
     {
@@ -66,7 +82,7 @@
             NombrePersona = _nombre,
             Documento = _documento,
             FechaHoraIngreso = DateTime.Now,
-            UnidadId = _unidadId
+            UnidadId = string.IsNullOrEmpty(_unidadId) ? null : int.Parse(_unidadId)
         };
         await OnGuardar.InvokeAsync(nuevo);
     }

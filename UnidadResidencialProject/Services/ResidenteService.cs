@@ -75,5 +75,21 @@ namespace UnidadResidencialProject.Services
             var result = await _http.GetFromJsonAsync<List<TorreDto>>("api/Torres");
             return result ?? new List<TorreDto>();
         }
+
+        // ── POST /api/ResidentesUnidad ──
+        public async Task<(bool ok, string? error)> AsignarApartamentoAsync(int usuarioId, int unidadId, bool esPropietario)
+        {
+            await SetAuthHeaderAsync();
+            var body = new
+            {
+                UsuarioId = usuarioId,
+                UnidadId = unidadId,
+                EsPropietario = esPropietario
+            };
+            var response = await _http.PostAsJsonAsync("api/ResidentesUnidad", body);
+            if (response.IsSuccessStatusCode) return (true, null);
+            var error = await response.Content.ReadAsStringAsync();
+            return (false, $"HTTP {(int)response.StatusCode}: {error}");
+        }
     }
 }

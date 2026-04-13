@@ -58,10 +58,10 @@
 
         @if (_mostrarFormulario)
         {
-            <ResidentesFormulario
-                Torres="@_nombresTorres"
-                OnGuardar="@GuardarResidente"
-                OnCancelar="@(() => _mostrarFormulario = false)" />
+            <ResidentesFormulario Torres="@_torres"
+                                  Apartamentos="@_apartamentos"
+                                  OnGuardar="@GuardarResidente"
+                                  OnCancelar="@(() => _mostrarFormulario = false)" />
         }
 
     </main>
@@ -135,20 +135,35 @@
         }
     }
 
-    private async Task GuardarResidente(UsuarioCreateDto nuevo)
+    private async Task GuardarResidente((UsuarioCreateDto Usuario, int UnidadId, bool EsPropietario) datos)
     {
         try
         {
-            var (ok, error) = await ResidenteService.CrearUsuarioAsync(nuevo);
-            if (ok)
-            {
-                _error = null;
-                await CargarDatos(); // Refrescar lista
-            }
-            else
+            var (ok, error) = await ResidenteService.CrearUsuarioAsync(datos.Usuario);
+            if (!ok)
             {
                 _error = $"Error al registrar residente: {error}";
+                _mostrarFormulario = false;
+                return;
             }
+
+            await CargarDatos();
+
+            var nuevoUsuario = _residentes.FirstOrDefault(
+                r => r.Documento == datos.Usuario.Documento);
+
+            if (nuevoUsuario != null && datos.UnidadId > 0)
+            {
+                var (okAsig, errorAsig) = await ResidenteService.AsignarApartamentoAsync(
+                    nuevoUsuario.UsuarioId, datos.UnidadId, datos.EsPropietario);
+
+                if (!okAsig)
+                    _error = $"Usuario creado pero error al asignar apartamento: {errorAsig}";
+                else
+                    await CargarDatos();
+            }
+
+            _error = null;
         }
         catch (Exception ex)
         {
