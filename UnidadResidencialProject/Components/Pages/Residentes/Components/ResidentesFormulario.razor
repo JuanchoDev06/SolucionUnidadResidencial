@@ -1,4 +1,4 @@
-﻿@using UnidadResidencialProject.Components.Pages.Residentes
+@using UnidadResidencialProject.Models
 
 <div class="modal-overlay">
     <div class="modal-box">
@@ -49,6 +49,11 @@
                 </div>
             </div>
             <div class="form-row">
+               <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <input class="form-control" type="password"
+                           placeholder="****" @bind="_password" />
+                </div>
                 <div class="form-group">
                     <label class="form-label">Tipo</label>
                     <select class="form-control" @bind="_tipo">
@@ -56,6 +61,8 @@
                         <option value="Inquilino">Inquilino</option>
                     </select>
                 </div>
+            </div>
+            <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Fecha de Ingreso</label>
                     <input class="form-control" type="text"
@@ -72,7 +79,7 @@
 
 @code {
     [Parameter] public List<string> Torres { get; set; } = new();
-    [Parameter] public EventCallback<Residentes.ResidenteItem> OnGuardar { get; set; }
+    [Parameter] public EventCallback<UsuarioCreateDto> OnGuardar { get; set; }
     [Parameter] public EventCallback OnCancelar { get; set; }
 
     private string _nombre = "";
@@ -81,16 +88,26 @@
     private string _telefono = "";
     private string _torre = "";
     private string _apartamento = "";
+    private string _password = "";
     private string _tipo = "Propietario";
 
     private async Task Guardar()
     {
-        if (string.IsNullOrWhiteSpace(_nombre) || string.IsNullOrWhiteSpace(_torre)) return;
+        if (string.IsNullOrWhiteSpace(_nombre) || string.IsNullOrWhiteSpace(_documento)) return;
 
-        var nuevo = new Residentes.ResidenteItem(
-            0, _nombre, _documento, _email, _telefono,
-            _torre, _apartamento, _tipo, true,
-            DateTime.Now.ToString("d MMM yyyy"));
+        int rolAsignado = _tipo == "Propietario" ? 2 : 3;
+
+        var nuevo = new UsuarioCreateDto
+        {
+            Nombre = _nombre,
+            Documento = _documento,
+            Email = _email,
+            Telefono = _telefono,
+            PasswordHash = _password,
+            RolId = rolAsignado,
+            Activo = true,
+            FechaCreacion = DateTime.Now
+        };
 
         await OnGuardar.InvokeAsync(nuevo);
     }

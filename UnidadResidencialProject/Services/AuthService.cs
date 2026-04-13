@@ -1,4 +1,4 @@
-﻿using Microsoft.JSInterop;
+using Microsoft.JSInterop;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -70,6 +70,55 @@ namespace UnidadResidencialProject.Services
         public async Task LogoutAsync()
         {
             await _js.InvokeVoidAsync("localStorage.removeItem", "jwt_token");
+        }
+
+        /// <summary>
+        /// Decodifica el JWT almacenado y extrae el userId del payload.
+        /// </summary>
+        public async Task<int> GetUserIdAsync()
+        {
+            var token = await GetTokenAsync();
+            if (string.IsNullOrEmpty(token)) return 0;
+
+            try
+            {
+                var parts = token.Split('.');
+                if (parts.Length != 3) return 0;
+
+                // Decodificar el payload (base64url)
+                var payload = parts[1];
+                payload = payload.Replace('-', '+').Replace('_', '/');
+                switch (payload.Length % 4)
+                {
+                    case 2: payload += "=="; break;
+                    case 3: payload += "="; break;
+                }
+
+                var bytes = Convert.FromBase64String(payload);
+                var json = System.Text.Encoding.UTF8.GetString(bytes);
+                var doc = JsonDocument.Parse(json);
+
+                // Intentar nombres comunes de claims para el ID de usuario
+                string[] claimNames = {
+                    "sub", "nameid", "userId", "UsuarioId", "usuarioId",
+                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+                };
+
+                foreach (var claim in claimNames)
+                {
+                    if (doc.RootElement.TryGetProperty(claim, out var value))
+                    {
+                        if (value.ValueKind == JsonValueKind.Number)
+                            return value.GetInt32();
+                        if (value.ValueKind == JsonValueKind.String &&
+                            int.TryParse(value.GetString(), out int id))
+                            return id;
+                    }
+                }
+            }
+            catch { }
+
+            return 0;
         }
     }
 }

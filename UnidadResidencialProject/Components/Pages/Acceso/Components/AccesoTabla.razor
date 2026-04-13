@@ -1,4 +1,4 @@
-﻿@using UnidadResidencialProject.Components.Pages.Acceso.Components
+@using UnidadResidencialProject.Models
 
 <div class="tabla-wrap">
     <table class="acceso-table">
@@ -9,7 +9,7 @@
                 <th>Nombre</th>
                 <th>Documento</th>
                 <th>Unidad</th>
-                <th>Portería</th>
+                <th>Vigilante</th>
                 <th>Ingreso</th>
                 <th>Salida</th>
                 <th>Estado</th>
@@ -20,14 +20,14 @@
             @foreach (var item in Ingresos)
             {
                 <tr>
-                    <td class="td-id">@item.Id</td>
+                    <td class="td-id">@item.IngresoId</td>
                     <td><span class="tipo-tag @item.Tipo.ToLower()">@item.Tipo</span></td>
                     <td class="td-nombre">@item.NombrePersona</td>
                     <td class="td-mono">@item.Documento</td>
-                    <td>@item.Unidad</td>
-                    <td>@item.Porteria</td>
-                    <td class="td-mono">@item.FechaHoraIngreso</td>
-                    <td class="td-mono">@(item.FechaHoraSalida ?? "—")</td>
+                    <td>@(item.Unidad?.Numero ?? "—")</td>
+                    <td>@(item.Vigilante?.Nombre ?? "—")</td>
+                    <td class="td-mono">@item.FechaHoraIngreso.ToString("hh:mm tt")</td>
+                    <td class="td-mono">@(item.FechaHoraSalida?.ToString("hh:mm tt") ?? "—")</td>
                     <td>
                         @if (item.FechaHoraSalida == null)
                         {
@@ -41,7 +41,7 @@
                     <td>
                         @if (item.FechaHoraSalida == null)
                         {
-                            <button class="btn-salida" @onclick="@(() => OnRegistrarSalida.InvokeAsync(item.Id))">
+                            <button class="btn-salida" @onclick="@(() => OnRegistrarSalida.InvokeAsync(item.IngresoId))">
                                 Registrar Salida
                             </button>
                         }
@@ -57,6 +57,6 @@
 </div>
 
 @code {
-    [Parameter] public List<Acceso.IngresoItem> Ingresos { get; set; } = new();
+    [Parameter] public List<IngresoDto> Ingresos { get; set; } = new();
     [Parameter] public EventCallback<int> OnRegistrarSalida { get; set; }
 }

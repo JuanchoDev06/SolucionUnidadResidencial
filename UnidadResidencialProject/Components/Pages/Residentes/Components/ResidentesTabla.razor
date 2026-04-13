@@ -1,4 +1,4 @@
-﻿@using UnidadResidencialProject.Components.Pages.Residentes
+@using UnidadResidencialProject.Models
 
 <div class="tabla-panel">
     <div class="panel-header">
@@ -15,7 +15,7 @@
                     <th>Contacto</th>
                     <th>Torre</th>
                     <th>Apartamento</th>
-                    <th>Tipo</th>
+                    <th>Tipo (Rol)</th>
                     <th>Ingreso</th>
                     <th>Estado</th>
                     <th>Acción</th>
@@ -25,10 +25,10 @@
                 @foreach (var r in Residentes)
                 {
                     <tr class="@(!r.Activo ? "row-inactivo" : "")">
-                        <td class="td-id">@r.Id</td>
+                        <td class="td-id">@r.UsuarioId</td>
                         <td>
                             <div class="residente-cell">
-                                <div class="avatar">@r.Nombre[0]</div>
+                                <div class="avatar">@(string.IsNullOrEmpty(r.Nombre) ? "?" : r.Nombre[0].ToString())</div>
                                 <span class="td-nombre">@r.Nombre</span>
                             </div>
                         </td>
@@ -39,14 +39,14 @@
                                 <span class="td-tel">@r.Telefono</span>
                             </div>
                         </td>
-                        <td><span class="torre-tag">@r.Torre</span></td>
-                        <td><span class="apto-tag">@r.Apartamento</span></td>
+                        <td><span class="torre-tag">N/A</span></td>
+                        <td><span class="apto-tag">N/A</span></td>
                         <td>
-                            <span class="tipo-tag @(r.Tipo == "Propietario" ? "propietario" : "inquilino")">
-                                @r.Tipo
+                            <span class="tipo-tag @(r.Rol?.Nombre?.ToLower() == "propietario" ? "propietario" : "inquilino")">
+                                @(r.Rol?.Nombre ?? "N/A")
                             </span>
                         </td>
-                        <td class="td-mono">@r.FechaIngreso</td>
+                        <td class="td-mono">@r.FechaCreacion.ToString("d MMM yyyy")</td>
                         <td>
                             <span class="estado-tag @(r.Activo ? "activo" : "inactivo")">
                                 @(r.Activo ? "Activo" : "Inactivo")
@@ -54,7 +54,7 @@
                         </td>
                         <td>
                             <button class="btn-toggle @(r.Activo ? "desactivar" : "activar")"
-                                    @onclick="@(() => OnDesactivar.InvokeAsync(r.Id))">
+                                    @onclick="@(() => OnDesactivar.InvokeAsync(r.UsuarioId))">
                                 @(r.Activo ? "Desactivar" : "Activar")
                             </button>
                         </td>
@@ -66,6 +66,6 @@
 </div>
 
 @code {
-    [Parameter] public List<Residentes.ResidenteItem> Residentes { get; set; } = new();
+    [Parameter] public List<UsuarioDto> Residentes { get; set; } = new();
     [Parameter] public EventCallback<int> OnDesactivar { get; set; }
 }
