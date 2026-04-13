@@ -12,6 +12,8 @@ builder.Services.AddScoped(sp => new HttpClient
     BaseAddress = new Uri("https://localhost:7051/")
 });
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<IngresoService>();
+builder.Services.AddScoped<ResidenteService>();
 
 var app = builder.Build();
 

@@ -1,6 +1,8 @@
-﻿@page "/ingresos"
+@page "/ingresos"
 @using UnidadResidencialProject.Components.Pages.Acceso.Components
 @using UnidadResidencialProject.Components.Pages.Dashboard.Components
+@inject IngresoService IngresoService
+@inject AuthService AuthService
 
 
 <PageTitle>Control de Acceso — Conjunto Residencial</PageTitle>
@@ -25,34 +27,50 @@
 
         <div class="page-body">
 
-            <div class="stats-row">
-                <div class="stat-chip blue">
-                    <span class="stat-num">@_ingresos.Count</span>
-                    <span class="stat-lbl">Total hoy</span>
+            @if (_cargando)
+            {
+                <div class="stats-row">
+                    <p style="color: var(--text3); font-style: italic;">Cargando ingresos…</p>
                 </div>
-                <div class="stat-chip green">
-                    <span class="stat-num">@_ingresos.Count(i => i.Tipo == "Residente")</span>
-                    <span class="stat-lbl">Residentes</span>
+            }
+            else if (_error != null)
+            {
+                <div class="stats-row">
+                    <p style="color: #DC2626;">@_error</p>
+                    <button class="btn-primary" style="margin-left: 1rem;" @onclick="CargarIngresos">Reintentar</button>
                 </div>
-                <div class="stat-chip amber">
-                    <span class="stat-num">@_ingresos.Count(i => i.Tipo == "Visitante")</span>
-                    <span class="stat-lbl">Visitantes</span>
+            }
+            else
+            {
+                <div class="stats-row">
+                    <div class="stat-chip blue">
+                        <span class="stat-num">@_ingresos.Count</span>
+                        <span class="stat-lbl">Total hoy</span>
+                    </div>
+                    <div class="stat-chip green">
+                        <span class="stat-num">@_ingresos.Count(i => i.Tipo == "Residente")</span>
+                        <span class="stat-lbl">Residentes</span>
+                    </div>
+                    <div class="stat-chip amber">
+                        <span class="stat-num">@_ingresos.Count(i => i.Tipo == "Visitante")</span>
+                        <span class="stat-lbl">Visitantes</span>
+                    </div>
+                    <div class="stat-chip purple">
+                        <span class="stat-num">@_ingresos.Count(i => i.Tipo == "Proveedor")</span>
+                        <span class="stat-lbl">Proveedores</span>
+                    </div>
+                    <div class="stat-chip red">
+                        <span class="stat-num">@_ingresos.Count(i => i.FechaHoraSalida == null)</span>
+                        <span class="stat-lbl">Dentro ahora</span>
+                    </div>
                 </div>
-                <div class="stat-chip purple">
-                    <span class="stat-num">@_ingresos.Count(i => i.Tipo == "Proveedor")</span>
-                    <span class="stat-lbl">Proveedores</span>
-                </div>
-                <div class="stat-chip red">
-                    <span class="stat-num">@_ingresos.Count(i => i.FechaHoraSalida == null)</span>
-                    <span class="stat-lbl">Dentro ahora</span>
-                </div>
-            </div>
 
-            <AccesoFiltros TipoSeleccionado="@_filtroTipo"
-                           OnFiltroChanged="@((t) => { _filtroTipo = t; })" />
+                <AccesoFiltros TipoSeleccionado="@_filtroTipo"
+                               OnFiltroChanged="@((t) => { _filtroTipo = t; })" />
 
-            <AccesoTabla Ingresos="@IngresosFiltrados"
-                         OnRegistrarSalida="@RegistrarSalida" />
+                <AccesoTabla Ingresos="@IngresosFiltrados"
+                             OnRegistrarSalida="@RegistrarSalida" />
+            }
 
         </div>
 
@@ -68,47 +86,92 @@
 @code {
     private bool _mostrarFormulario = false;
     private string _filtroTipo = "Todos";
+    private bool _cargando = true;
+    private string? _error;
 
-    private List<IngresoItem> _ingresos = new()
-    {
-        new(1,  "Residente", "Juan Pérez",      "80.123.456", "10:42 AM", null,       "Apto 205", "Portería Principal"),
-        new(2,  "Visitante", "Luis Morales",     "72.341.890", "10:38 AM", null,       "Apto 302", "Portería Principal"),
-        new(3,  "Residente", "Sandra Gil",       "52.678.123", "10:15 AM", null,       "Apto 410", "Portería Lateral"),
-        new(4,  "Proveedor", "Técnico ETB",      "91.234.567", "09:55 AM", null,       "—",        "Portería Principal"),
-        new(5,  "Residente", "Carlos Ríos",      "68.901.234", "09:30 AM", "09:50 AM", "Apto 501", "Portería Principal"),
-        new(6,  "Visitante", "María Suárez",     "43.567.890", "09:12 AM", "10:00 AM", "Apto 104", "Portería Lateral"),
-        new(7,  "Proveedor", "Jardinería Verde", "98.765.432", "08:50 AM", "12:00 PM", "—",        "Portería Principal"),
-        new(8,  "Residente", "Ana Torres",       "31.456.789", "08:30 AM", "08:45 AM", "Apto 104", "Portería Principal"),
-        new(9,  "Visitante", "Pedro Gómez",      "55.234.678", "08:10 AM", "09:30 AM", "Apto 207", "Portería Lateral"),
-        new(10, "Residente", "Laura Martínez",   "62.890.345", "07:55 AM", "08:20 AM", "Apto 308", "Portería Principal"),
-    };
+    private List<IngresoDto> _ingresos = new();
 
-    private List<IngresoItem> IngresosFiltrados =>
+    private List<IngresoDto> IngresosFiltrados =>
         _filtroTipo == "Todos"
             ? _ingresos
             : _ingresos.Where(i => i.Tipo == _filtroTipo).ToList();
 
-    private void AbrirFormulario() => _mostrarFormulario = true;
-
-    private void GuardarIngreso(IngresoItem nuevo)
+    protected override async Task OnInitializedAsync()
     {
-        nuevo = nuevo with { Id = _ingresos.Count + 1 };
-        _ingresos.Insert(0, nuevo);
-        _mostrarFormulario = false;
+        await CargarIngresos();
     }
 
-    private void RegistrarSalida(int id)
+    private async Task CargarIngresos()
     {
-        var item = _ingresos.FirstOrDefault(i => i.Id == id);
-        if (item != null)
+        try
         {
-            var idx = _ingresos.IndexOf(item);
-            _ingresos[idx] = item with { FechaHoraSalida = DateTime.Now.ToString("hh:mm tt") };
+            _cargando = true;
+            _error = null;
+            _ingresos = await IngresoService.GetIngresosAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Error al cargar ingresos: {ex.Message}";
+        }
+        finally
+        {
+            _cargando = false;
         }
     }
 
-    public record IngresoItem(
-        int Id, string Tipo, string NombrePersona, string Documento,
-        string FechaHoraIngreso, string? FechaHoraSalida,
-        string Unidad, string Porteria);
+    private void AbrirFormulario() => _mostrarFormulario = true;
+
+    private async Task GuardarIngreso(IngresoCreateDto nuevo)
+    {
+        try
+        {
+            // Obtener el userId del usuario logueado
+            var userId = await AuthService.GetUserIdAsync();
+            nuevo.UsuarioId = userId;
+            nuevo.FechaHoraIngreso = DateTime.Now;
+
+            var (ok, error) = await IngresoService.CrearIngresoAsync(nuevo);
+            if (ok)
+            {
+                _error = null;
+                await CargarIngresos();
+            }
+            else
+            {
+                _error = $"Error al guardar el ingreso: {error}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = $"Error al guardar: {ex.Message}";
+        }
+
+        _mostrarFormulario = false;
+    }
+
+    private async Task RegistrarSalida(int id)
+    {
+        var item = _ingresos.FirstOrDefault(i => i.IngresoId == id);
+        if (item != null)
+        {
+            try
+            {
+                item.FechaHoraSalida = DateTime.Now;
+                var (ok, error) = await IngresoService.ActualizarIngresoAsync(id, item);
+                if (ok)
+                {
+                    _error = null;
+                    await CargarIngresos();
+                }
+                else
+                {
+                    _error = $"Error al registrar la salida: {error}";
+                }
+            }
+            catch (Exception ex)
+            {
+                _error = $"Error al registrar salida: {ex.Message}";
+            }
+        }
+    }
 }

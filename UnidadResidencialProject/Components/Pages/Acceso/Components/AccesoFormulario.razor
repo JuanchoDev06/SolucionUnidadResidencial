@@ -1,4 +1,4 @@
-﻿@using UnidadResidencialProject.Components.Pages.Acceso.Components
+@using UnidadResidencialProject.Models
 
 <div class="modal-overlay">
     <div class="modal-box">
@@ -18,11 +18,8 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Portería</label>
-                    <select class="form-control" @bind="_porteria">
-                        <option>Portería Principal</option>
-                        <option>Portería Lateral</option>
-                    </select>
+                    <label class="form-label">Unidad / Apartamento</label>
+                    <input class="form-control" type="text" placeholder="Ej: 1, 204" @bind="_unidadId" />
                 </div>
             </div>
 
@@ -39,10 +36,6 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Unidad / Apartamento</label>
-                    <input class="form-control" type="text" placeholder="Ej: Apto 302" @bind="_unidad" />
-                </div>
-                <div class="form-group">
                     <label class="form-label">Hora de Ingreso</label>
                     <input class="form-control" type="text" value="@DateTime.Now.ToString("hh:mm tt")" readonly />
                 </div>
@@ -57,22 +50,24 @@
 </div>
 
 @code {
-    [Parameter] public EventCallback<Acceso.IngresoItem> OnGuardar { get; set; }
+    [Parameter] public EventCallback<IngresoCreateDto> OnGuardar { get; set; }
     [Parameter] public EventCallback OnCancelar { get; set; }
 
     private string _tipo = "Residente";
-    private string _porteria = "Portería Principal";
     private string _nombre = "";
     private string _documento = "";
-    private string _unidad = "";
+    private int _unidadId = 0;
 
     private async Task Guardar()
     {
-        var nuevo = new Acceso.IngresoItem(
-            0, _tipo, _nombre, _documento,
-            DateTime.Now.ToString("hh:mm tt"), null,
-            string.IsNullOrWhiteSpace(_unidad) ? "—" : _unidad,
-            _porteria);
+        var nuevo = new IngresoCreateDto
+        {
+            Tipo = _tipo,
+            NombrePersona = _nombre,
+            Documento = _documento,
+            FechaHoraIngreso = DateTime.Now,
+            UnidadId = _unidadId
+        };
         await OnGuardar.InvokeAsync(nuevo);
     }
 }

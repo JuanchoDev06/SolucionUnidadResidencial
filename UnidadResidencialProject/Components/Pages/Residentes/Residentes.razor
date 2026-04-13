@@ -1,4 +1,9 @@
-﻿@page "/residentes"
+@page "/residentes"
+@using UnidadResidencialProject.Models
+@using UnidadResidencialProject.Services
+@using UnidadResidencialProject.Components.Pages.Residentes.Components
+@inject ResidenteService ResidenteService
+
 
 <PageTitle>Residentes — Conjunto Residencial</PageTitle>
 
@@ -21,26 +26,40 @@
         </header>
 
         <div class="page-body">
+            @if (_cargando)
+            {
+                <div class="stats-row">
+                    <p style="color: var(--text3); font-style: italic;">Cargando información...</p>
+                </div>
+            }
+            else if (_error != null)
+            {
+                <div class="stats-row">
+                    <p style="color: #DC2626;">@_error</p>
+                    <button class="btn-primary" style="margin-left: 1rem;" @onclick="CargarDatos">Reintentar</button>
+                </div>
+            }
+            else
+            {
+                <ResidentesTarjetas Residentes="@_residentes" Torres="@_nombresTorres" />
 
-            <ResidentesTarjetas Residentes="@_residentes" Torres="@_torres" />
+                <ResidentesFiltros
+                    FiltroTorre="@_filtroTorre"
+                    FiltroTipo="@_filtroTipo"
+                    Torres="@_nombresTorres"
+                    OnTorreChanged="@((t) => _filtroTorre = t)"
+                    OnTipoChanged="@((t) => _filtroTipo = t)" />
 
-            <ResidentesFiltros
-                FiltroTorre="@_filtroTorre"
-                FiltroTipo="@_filtroTipo"
-                Torres="@_torres"
-                OnTorreChanged="@((t) => _filtroTorre = t)"
-                OnTipoChanged="@((t) => _filtroTipo = t)" />
-
-            <ResidentesTabla
-                Residentes="@ResidentesFiltrados"
-                OnDesactivar="@DesactivarResidente" />
-
+                <ResidentesTabla
+                    Residentes="@ResidentesFiltrados"
+                    OnDesactivar="@DesactivarResidente" />
+            }
         </div>
 
         @if (_mostrarFormulario)
         {
             <ResidentesFormulario
-                Torres="@_torres"
+                Torres="@_nombresTorres"
                 OnGuardar="@GuardarResidente"
                 OnCancelar="@(() => _mostrarFormulario = false)" />
         }
@@ -49,63 +68,92 @@
 </div>
 
 @code {
-    private bool   _mostrarFormulario = false;
+    private bool _mostrarFormulario = false;
     private string _filtroTorre = "Todas";
-    private string _filtroTipo  = "Todos";
+    private string _filtroTipo = "Todos";
+    
+    private bool _cargando = true;
+    private string? _error;
 
-    // ── Modelos ───────────────────────────────────────────
-    public record ResidenteItem(
-        int    Id,
-        string Nombre,
-        string Documento,
-        string Email,
-        string Telefono,
-        string Torre,
-        string Apartamento,
-        string Tipo,
-        bool   Activo,
-        string FechaIngreso);
+    private List<UsuarioDto> _residentes = new();
+    private List<TorreDto> _torres = new();
+    private List<ApartamentoDto> _apartamentos = new();
+    
+    private List<string> _nombresTorres = new();
 
-    // ── Catálogos ─────────────────────────────────────────
-    private List<string> _torres = new() { "Torre A", "Torre B", "Torre C" };
-
-    // ── Datos simulados ───────────────────────────────────
-    private List<ResidenteItem> _residentes = new()
+    protected override async Task OnInitializedAsync()
     {
-        new(1,  "María López",    "52.123.456", "maria@email.com",   "310-111-2222", "Torre A", "Apto 302", "Propietario", true,  "15 Ene 2022"),
-        new(2,  "Carlos Ríos",    "80.234.567", "carlos@email.com",  "311-222-3333", "Torre A", "Apto 501", "Propietario", true,  "3 Mar 2021"),
-        new(3,  "Ana Torres",     "43.345.678", "ana@email.com",     "312-333-4444", "Torre A", "Apto 104", "Inquilino",   true,  "1 Jun 2023"),
-        new(4,  "Pedro Gómez",    "71.456.789", "pedro@email.com",   "313-444-5555", "Torre B", "Apto 207", "Propietario", true,  "20 Ago 2020"),
-        new(5,  "Sandra Gil",     "36.567.890", "sandra@email.com",  "314-555-6666", "Torre B", "Apto 410", "Inquilino",   true,  "10 Feb 2024"),
-        new(6,  "Juan Pérez",     "19.678.901", "juan@email.com",    "315-666-7777", "Torre B", "Apto 205", "Propietario", true,  "5 Sep 2019"),
-        new(7,  "Laura Martínez", "62.789.012", "laura@email.com",   "316-777-8888", "Torre B", "Apto 308", "Inquilino",   true,  "14 Nov 2022"),
-        new(8,  "Diego Vargas",   "88.890.123", "diego@email.com",   "317-888-9999", "Torre C", "Apto 603", "Propietario", true,  "28 Dic 2021"),
-        new(9,  "Camila Reyes",   "55.901.234", "camila@email.com",  "318-999-0000", "Torre C", "Apto 701", "Inquilino",   true,  "7 Abr 2023"),
-        new(10, "Andrés Castro",  "74.012.345", "andres@email.com",  "319-000-1111", "Torre C", "Apto 402", "Propietario", true,  "19 Jul 2020"),
-        new(11, "Sofía Herrera",  "29.123.456", "sofia@email.com",   "320-111-2222", "Torre A", "Apto 410", "Inquilino",   false, "2 Feb 2022"),
-        new(12, "Luis Morales",   "67.234.567", "luis@email.com",    "321-222-3333", "Torre C", "Apto 505", "Propietario", true,  "11 Oct 2021"),
-    };
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        try
+        {
+            _cargando = true;
+            _error = null;
+            
+            _residentes = await ResidenteService.GetUsuariosAsync();
+            _torres = await ResidenteService.GetTorresAsync();
+            _apartamentos = await ResidenteService.GetApartamentosAsync();
+            
+            _nombresTorres = _torres.Select(t => t.Nombre).ToList();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Error al cargar datos: {ex.Message}";
+        }
+        finally
+        {
+            _cargando = false;
+        }
+    }
 
     // ── Computed ──────────────────────────────────────────
-    private List<ResidenteItem> ResidentesFiltrados =>
+    private List<UsuarioDto> ResidentesFiltrados =>
         _residentes
-            .Where(r => _filtroTorre == "Todas" || r.Torre == _filtroTorre)
-            .Where(r => _filtroTipo  == "Todos" || r.Tipo  == _filtroTipo)
-            .OrderBy(r => r.Torre)
-            .ThenBy(r => r.Apartamento)
+            //.Where(r => _filtroTorre == "Todas" || "N/A" == _filtroTorre) // Descomentar cuando la API soporte Torres anidadas
+            .Where(r => _filtroTipo  == "Todos" || string.Equals(r.Rol?.Nombre, _filtroTipo, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(r => r.Nombre)
             .ToList();
 
     // ── Acciones ──────────────────────────────────────────
-    private void DesactivarResidente(int id)
+    private async Task DesactivarResidente(int id)
     {
-        var idx = _residentes.FindIndex(r => r.Id == id);
+        var idx = _residentes.FindIndex(r => r.UsuarioId == id);
         if (idx >= 0)
-            _residentes[idx] = _residentes[idx] with { Activo = !_residentes[idx].Activo };
+        {
+            var user = _residentes[idx];
+            user.Activo = !user.Activo; // Cambiamos estado localmente
+            
+            var (ok, error) = await ResidenteService.ActualizarUsuarioAsync(id, user);
+            if (!ok)
+            {
+                user.Activo = !user.Activo; // Revertimos si hay error
+                _error = $"Error al actualizar estado: {error}";
+            }
+        }
     }
 
-    private void GuardarResidente(ResidenteItem nuevo)
+    private async Task GuardarResidente(UsuarioCreateDto nuevo)
     {
-        _residentes.Insert(0, nuevo with { Id = _residentes.Count + 1 });
+        try
+        {
+            var (ok, error) = await ResidenteService.CrearUsuarioAsync(nuevo);
+            if (ok)
+            {
+                _error = null;
+                await CargarDatos(); // Refrescar lista
+            }
+            else
+            {
+                _error = $"Error al registrar residente: {error}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = $"Error al guardar: {ex.Message}";
+        }
         _mostrarFormulario = false;
     }
 }
