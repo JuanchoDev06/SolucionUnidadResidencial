@@ -1,13 +1,13 @@
 # 🏢 Sistema de Gestión de Unidad Residencial
 
-![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?style=flat-square&logo=dotnet)
+![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square&logo=dotnet)
 ![Blazor](https://img.shields.io/badge/Blazor-WebApp-512BD4?style=flat-square&logo=blazor)
 ![C#](https://img.shields.io/badge/C%23-Latest-239120?style=flat-square&logo=csharp)
 ![SQL Server](https://img.shields.io/badge/SQL_Server-2022-CC2927?style=flat-square&logo=microsoftsqlserver)
 ![Visual Studio](https://img.shields.io/badge/Visual_Studio-Community_2026-5C2D91?style=flat-square&logo=visualstudio)
 ![Estado](https://img.shields.io/badge/Estado-En_Desarrollo-yellow?style=flat-square)
 
-Sistema web desarrollado con **Blazor Web App (.NET 10)** para la administración integral de una unidad residencial. Permite gestionar el control de acceso, parqueadero, mensajería, reservas de zonas comunes, mantenimientos y residentes desde una sola plataforma corporativa.
+Sistema web desarrollado con **Blazor Web App (.NET 8)** para la administración integral de una unidad residencial. Permite gestionar el control de acceso, parqueadero, mensajería, reservas de zonas comunes, mantenimientos y residentes desde una sola plataforma corporativa.
 
 > 📚 Proyecto académico — Materia: **Profundización en Programación**
 
@@ -35,7 +35,7 @@ Sistema web desarrollado con **Blazor Web App (.NET 10)** para la administració
 | Tecnología | Versión | Uso |
 |---|---|---|
 | .NET | 8.0 | Framework principal |
-| Blazor Web App | .NET 10 | Frontend y lógica de UI |
+| Blazor Web App | .NET 8 | Frontend y lógica de UI |
 | C# | Latest | Lenguaje de programación |
 | SQL Server | 2022 | Base de datos relacional |
 | SQL Server Management Studio | 19+ | Administración de BD |
@@ -82,21 +82,21 @@ Programación y seguimiento de mantenimientos por tipo y zona común. Registro d
 
 ---
 
-### 🔜 Mensajería
+### ✅ Mensajería
 Control de paquetes y correspondencia recibida. Registro de empresa, guía, fecha de recepción y entrega.
 
 **Entidades BD relacionadas:** `Mensajeria`, `Apartamentos`, `Usuario`
 
 ---
 
-### 🔜 Reservas de Zonas Comunes
+### ✅ Reservas de Zonas Comunes
 Gestión de reservas de espacios como salón social, BBQ, piscina y gimnasio. Control de disponibilidad por fecha y hora.
 
 **Entidades BD relacionadas:** `Reserva`, `ZonaComun`, `Usuario`
 
 ---
 
-### 🔜 Residentes & Apartamentos
+### ✅ Residentes & Apartamentos
 Administración de residentes por torre y apartamento. Registro de propietarios e inquilinos.
 
 **Entidades BD relacionadas:** `ResidenteUnidad`, `Apartamentos`, `Torre`, `Conjunto`, `Usuario`, `Rol`
@@ -134,7 +134,7 @@ El sistema utiliza **SQL Server**
 ### Prerrequisitos
 
 - Visual Studio Community 2022 con carga de trabajo **ASP.NET y desarrollo web**
-- .NET 10.0 SDK
+- .NET 8.0 SDK
 - SQL Server 2022 (o SQL Server Express)
 - SQL Server Management Studio (SSMS)
 
@@ -175,16 +175,19 @@ Presiona `F5` en Visual Studio o haz clic en el botón **Ejecutar**. El proyecto
 
 ## 📊 Estado del Desarrollo
 
-| Módulo | Interfaz | Lógica | BD Conectada |
-|---|---|---|---|
-| Dashboard | ✅ Completo | ✅ Datos simulados | ⏳ Pendiente |
-| Control de Acceso | ✅ Completo | ✅ Datos simulados | ⏳ Pendiente |
-| Parqueadero | ✅ Completo | ✅ Datos simulados | ⏳ Pendiente |
-| Mantenimiento | ✅ Completo | ✅ Datos simulados | ⏳ Pendiente |
-| Mensajería | 🔜 Pendiente | ⏳ Pendiente | ⏳ Pendiente |
-| Reservas | 🔜 Pendiente | ⏳ Pendiente | ⏳ Pendiente |
-| Residentes | 🔜 Pendiente | ⏳ Pendiente | ⏳ Pendiente |
-| Autenticación | 🔜 Pendiente | ⏳ Pendiente | ⏳ Pendiente |
+| Módulo | Interfaz | BD Conectada |
+|---|---|---|
+| Dashboard | ✅ Completo | ⏳ Pendiente |
+| Control de Acceso | ✅ Completo | ✅ Conectado |
+| Parqueadero | ✅ Completo | ✅ Conectado |
+| Mantenimiento | ✅ Completo | ✅ En progreso |
+| Mensajería | ✅ Completo | ✅ Conectado |
+| Reservas | ✅ Completo | ✅ Conectado |
+| Residentes & Apartamentos | ✅ Completo | ✅ Conectado |
+| Login / Autenticación JWT | ✅ Completo | ✅ Conectado |
+| Módulo de Admin | 🔜 Pendiente | 🔜 Pendiente |
+| Autorización por Roles | 🔜 Pendiente | 🔜 Pendiente |
+| Módulo de Reportes | 🔜 Pendiente | 🔜 Pendiente |
 
 ---
 
