@@ -1,4 +1,4 @@
-﻿.disp-panel {
+.disp-panel {
     background: var(--surface);
     border-radius: var(--radius);
     border: 1px solid var(--border);
@@ -14,6 +14,34 @@
     flex-wrap: wrap;
     gap: .75rem;
 }
+
+.disp-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.disp-leyenda {
+    display: flex;
+    gap: 12px;
+}
+
+.l-item {
+    font-size: .65rem;
+    color: var(--text3);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.l-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+    .l-dot.libre { background: var(--c-green); }
+    .l-dot.ocupada { background: var(--c-red); }
 
 .disp-titulo {
     font-size: .9rem;

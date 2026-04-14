@@ -10,7 +10,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Zona Común</label>
-                    <select class="form-control" @bind="_zonaId">
+                    <select class="form-control" value="@_zonaId" @onchange="OnZonaChanged">
                         <option value="0">— Seleccionar zona —</option>
                         @foreach (var z in Zonas)
                         {
@@ -35,8 +35,23 @@
                            @bind="_horaFinTimeOnly" />
                 </div>
             </div>
-            <!-- Removemos residente y apartamento, los mandamos con UserId del backend -->
             <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Residente</label>
+                    <input class="form-control" type="text"
+                           placeholder="Ej: María López" @bind="_residente" />
+                </div>
+                <div class="form-group" style="visibility: hidden;">
+                    <!-- Espacio removido de Apartamento que solicitaste -->
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Valor por Hora ($)</label>
+                    <input class="form-control" type="number"
+                           @bind="_valorHora" />
+                </div>
                 <div class="form-group">
                     <label class="form-label">Estado Inicial</label>
                     <select class="form-control" @bind="_estado">
@@ -46,10 +61,10 @@
                 </div>
             </div>
 
-            @if (_conflicto)
+            @if (_errorLocal != "")
             {
                 <div class="alerta-conflicto">
-                    ⚠️ Ya existe una reserva para esa zona en ese horario predeterminado.
+                    ⚠️ @_errorLocal
                 </div>
             }
         </div>
@@ -72,26 +87,50 @@
     private DateTime _fecha = DateTime.Today.AddDays(1);
     private TimeOnly _horaInicioTimeOnly = new TimeOnly(9, 0);
     private TimeOnly _horaFinTimeOnly = new TimeOnly(11, 0);
+    
+    // UI Only
     private string _estado = "Pendiente";
-    private bool _conflicto = false;
+    private string _residente = "";
+    private decimal _valorHora = 0;
+    private string _errorLocal = "";
+
+    private void OnZonaChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int val))
+        {
+            _zonaId = val;
+            var zona = Zonas.FirstOrDefault(z => z.ZonaComunId == val);
+            _valorHora = zona?.ValorHora ?? 0;
+        }
+    }
 
     private async Task Guardar()
     {
-        if (_zonaId <= 0) return;
+        if (_zonaId <= 0)
+        {
+            _errorLocal = "Debes seleccionar una zona común.";
+            return;
+        }
+        
+        _errorLocal = "";
 
         var _horaInicio = _horaInicioTimeOnly.ToTimeSpan();
         var _horaFin = _horaFinTimeOnly.ToTimeSpan();
 
         var userId = await AuthService.GetUserIdAsync();
 
-        _conflicto = Reservas.Any(r =>
+        bool conflicto = Reservas.Any(r =>
             r.ZonaComunId == _zonaId &&
             r.Fecha.Date == _fecha.Date &&
             r.Estado != "Cancelada" &&
             ( (r.HoraInicio < _horaFin && r.HoraFin > _horaInicio) )
         );
 
-        if (_conflicto) return;
+        if (conflicto)
+        {
+            _errorLocal = "Ya existe una reserva para esa zona en este horario.";
+            return;
+        }
 
         var nueva = new ReservaCreateDto
         {

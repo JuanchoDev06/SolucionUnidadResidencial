@@ -59,7 +59,7 @@ namespace UnidadResidencialProject.Services
         public async Task<List<ZonaComunDto>> GetZonasComunesAsync()
         {
             await SetAuthHeaderAsync();
-            var result = await _http.GetFromJsonAsync<List<ZonaComunDto>>("api/ZonaComun");
+            var result = await _http.GetFromJsonAsync<List<ZonaComunDto>>("api/ZonasComunes");
             return result ?? new List<ZonaComunDto>();
         }
     }

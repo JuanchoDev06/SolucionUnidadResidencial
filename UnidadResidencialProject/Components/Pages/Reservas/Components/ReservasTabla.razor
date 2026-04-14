@@ -13,7 +13,6 @@
                     <th>#</th>
                     <th>Zona Común</th>
                     <th>Residente</th>
-                    <th>Apartamento</th>
                     <th>Fecha</th>
                     <th>Horario</th>
                     <th>Valor</th>
@@ -28,7 +27,6 @@
                         <td class="td-id">@r.ReservaId</td>
                         <td><span class="zona-tag @GetZonaCss(r.ZonaComun?.Nombre ?? "")">@GetZonaIcono(r.ZonaComun?.Nombre ?? "") @r.ZonaComun?.Nombre</span></td>
                         <td class="td-nombre">@(r.Usuario?.Nombre ?? "N/A")</td>
-                        <td><span class="apto-tag">N/A</span></td>
                         <td class="td-mono">@r.Fecha.ToString("d MMM yyyy")</td>
                         <td class="td-mono">@r.HoraInicio.ToString(@"hh\:mm") – @r.HoraFin.ToString(@"hh\:mm")</td>
                         <td class="td-valor">@(r.ZonaComun?.ValorHora > 0 ? $"${r.ZonaComun.ValorHora:N0}" : "Gratis")</td>
