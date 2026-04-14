@@ -1,4 +1,5 @@
-﻿@using UnidadResidencialProject.Components.Pages.Reservas
+@using UnidadResidencialProject.Components.Pages.Reservas
+@using UnidadResidencialProject.Models
 
 <div class="tabla-panel">
     <div class="panel-header">
@@ -12,7 +13,6 @@
                     <th>#</th>
                     <th>Zona Común</th>
                     <th>Residente</th>
-                    <th>Apartamento</th>
                     <th>Fecha</th>
                     <th>Horario</th>
                     <th>Valor</th>
@@ -24,18 +24,17 @@
                 @foreach (var r in Reservas)
                 {
                     <tr>
-                        <td class="td-id">@r.Id</td>
-                        <td><span class="zona-tag @GetZonaCss(r.ZonaComun)">@GetZonaIcono(r.ZonaComun) @r.ZonaComun</span></td>
-                        <td class="td-nombre">@r.Residente</td>
-                        <td><span class="apto-tag">@r.Apartamento</span></td>
-                        <td class="td-mono">@r.Fecha</td>
-                        <td class="td-mono">@r.HoraInicio – @r.HoraFin</td>
-                        <td class="td-valor">@(r.ValorHora > 0 ? $"${r.ValorHora:N0}" : "Gratis")</td>
+                        <td class="td-id">@r.ReservaId</td>
+                        <td><span class="zona-tag @GetZonaCss(r.ZonaComun?.Nombre ?? "")">@GetZonaIcono(r.ZonaComun?.Nombre ?? "") @r.ZonaComun?.Nombre</span></td>
+                        <td class="td-nombre">@(r.Usuario?.Nombre ?? "N/A")</td>
+                        <td class="td-mono">@r.Fecha.ToString("d MMM yyyy")</td>
+                        <td class="td-mono">@r.HoraInicio.ToString(@"hh\:mm") – @r.HoraFin.ToString(@"hh\:mm")</td>
+                        <td class="td-valor">@(r.ZonaComun?.ValorHora > 0 ? $"${r.ZonaComun.ValorHora:N0}" : "Gratis")</td>
                         <td><span class="estado-tag @GetEstadoCss(r.Estado)">@r.Estado</span></td>
                         <td>
                             <select class="accion-select"
                                     value="@r.Estado"
-                                    @onchange="@((e) => OnCambiarEstado.InvokeAsync((r.Id, e.Value!.ToString()!)))">
+                                    @onchange="@((e) => OnCambiarEstado.InvokeAsync((r.ReservaId, e.Value!.ToString()!)))">
                                 <option value="Pendiente">Pendiente</option>
                                 <option value="Confirmada">Confirmada</option>
                                 <option value="Cancelada">Cancelada</option>
@@ -49,7 +48,7 @@
 </div>
 
 @code {
-    [Parameter] public List<Reservas.ReservaItem> Reservas { get; set; } = new();
+    [Parameter] public List<ReservaDto> Reservas { get; set; } = new();
     [Parameter] public EventCallback<(int, string)> OnCambiarEstado { get; set; }
 
     private string GetEstadoCss(string e) => e switch

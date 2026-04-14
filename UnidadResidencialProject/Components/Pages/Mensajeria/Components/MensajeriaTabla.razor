@@ -1,4 +1,4 @@
-﻿@using UnidadResidencialProject.Components.Pages.Mensajeria
+@using UnidadResidencialProject.Components.Pages.Mensajeria
 
 <div class="tabla-panel">
     <div class="panel-header">
@@ -24,25 +24,25 @@
             <tbody>
                 @foreach (var p in Paquetes)
                 {
-                    <tr class="@(p.Estado == "Pendiente" ? "row-pendiente" : "")">
-                        <td class="td-id">@p.Id</td>
-                        <td><span class="tipo-icon">@GetIcono(p.Tipo)</span></td>
-                        <td class="td-empresa">@p.Empresa</td>
+                    <tr class="@(GetEstado(p) == "Pendiente" ? "row-pendiente" : "")">
+                        <td class="td-id">@p.MensajeriaId</td>
+                        <td><span class="tipo-icon">@GetIcono(p)</span></td>
+                        <td class="td-empresa">@CleanEmpresa(p.Empresa)</td>
                         <td class="td-mono">@p.Guia</td>
-                        <td><span class="apto-tag">@p.Apartamento</span></td>
-                        <td class="td-nombre">@p.Residente</td>
-                        <td class="td-mono">@p.FechaRecepcion</td>
-                        <td class="td-mono">@(p.FechaEntrega ?? "—")</td>
+                        <td><span class="apto-tag">@(p.Unidad?.Torre?.Nombre) - Apto @p.Unidad?.Numero</span></td>
+                        <td class="td-nombre">N/A</td> <!-- Backend no tiene residente local -->
+                        <td class="td-mono">@p.FechaRecepcion.ToString("d MMM h:mm tt")</td>
+                        <td class="td-mono">@(p.FechaEntrega?.ToString("d MMM h:mm tt") ?? "—")</td>
                         <td>
-                            <span class="estado-tag @(p.Estado == "Pendiente" ? "pendiente" : "entregado")">
-                                @p.Estado
+                            <span class="estado-tag @(GetEstado(p) == "Pendiente" ? "pendiente" : "entregado")">
+                                @GetEstado(p)
                             </span>
                         </td>
                         <td>
-                            @if (p.Estado == "Pendiente")
+                            @if (GetEstado(p) == "Pendiente")
                             {
                                 <button class="btn-entregar"
-                                        @onclick="@(() => OnMarcarEntregado.InvokeAsync(p.Id))">
+                                        @onclick="@(() => OnMarcarEntregado.InvokeAsync(p.MensajeriaId))">
                                     ✓ Entregar
                                 </button>
                             }
@@ -59,13 +59,26 @@
 </div>
 
 @code {
-    [Parameter] public List<Mensajeria.PaqueteItem> Paquetes { get; set; } = new();
+    [Parameter] public List<MensajeriaDto> Paquetes { get; set; } = new();
     [Parameter] public EventCallback<int> OnMarcarEntregado { get; set; }
 
-    private string GetIcono(string tipo) => tipo switch
+    private string GetEstado(MensajeriaDto p) => p.FechaEntrega == null ? "Pendiente" : "Entregado";
+
+    // Extrae dinámicamente el icono basado en el prefijo guardado en la Empresa
+    private string GetIcono(MensajeriaDto p)
     {
-        "Sobre" => "✉️",
-        "Correspondencia" => "📄",
-        _ => "📦"
-    };
+        if (string.IsNullOrEmpty(p.Empresa)) return "📦";
+        if (p.Empresa.StartsWith("[Sobre]")) return "✉️";
+        if (p.Empresa.StartsWith("[Correspondencia]")) return "📄";
+        return "📦"; // Default Paquete
+    }
+
+    private string CleanEmpresa(string? empresa)
+    {
+        if (string.IsNullOrEmpty(empresa)) return "";
+        if (empresa.StartsWith("[Sobre] ")) return empresa.Substring(8);
+        if (empresa.StartsWith("[Paquete] ")) return empresa.Substring(10);
+        if (empresa.StartsWith("[Correspondencia] ")) return empresa.Substring(18);
+        return empresa;
+    }
 }

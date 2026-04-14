@@ -1,10 +1,17 @@
-﻿@using UnidadResidencialProject.Components.Pages.Reservas
+@using UnidadResidencialProject.Components.Pages.Reservas
+@using UnidadResidencialProject.Models
 
 <div class="disp-panel">
     <div class="disp-header">
-        <h2 class="disp-titulo">Disponibilidad por Fecha</h2>
+        <div class="disp-title-group">
+            <h2 class="disp-titulo">Disponibilidad por Fecha</h2>
+            <div class="disp-leyenda">
+                <span class="l-item"><span class="l-dot libre"></span> Libre</span>
+                <span class="l-item"><span class="l-dot ocupada"></span> Reservado</span>
+            </div>
+        </div>
         <div class="disp-fecha-wrap">
-            <label class="form-label">Seleccionar fecha:</label>
+            <label class="form-label">Consultar día:</label>
             <input type="date" class="fecha-input"
                    value="@FechaSeleccionada.ToString("yyyy-MM-dd")"
                    @onchange="@((e) => OnFechaChanged.InvokeAsync(DateTime.Parse(e.Value!.ToString()!)))" />
@@ -12,11 +19,11 @@
     </div>
 
     <div class="zonas-grid">
-        @foreach (var zona in _zonas)
+        @foreach (var zona in Zonas.Where(z => FiltroZona == "Todas" || z.Nombre == FiltroZona))
         {
             var reservasZona = Reservas
-            .Where(r => r.ZonaComun == zona.Nombre &&
-            r.Fecha == FechaSeleccionada.ToString("d MMM yyyy") &&
+            .Where(r => r.ZonaComun?.Nombre == zona.Nombre &&
+            r.Fecha.Date == FechaSeleccionada.Date &&
             r.Estado != "Cancelada")
             .ToList();
 
@@ -24,17 +31,20 @@
 
             <div class="zona-card @(ocupada ? "ocupada" : "libre")">
                 <div class="zona-top">
-                    <span class="zona-icon">@zona.Icono</span>
+                    <span class="zona-icon">@GetIcono(zona.Nombre)</span>
                     <span class="zona-estado-dot @(ocupada ? "ocupada" : "libre")"></span>
                 </div>
                 <span class="zona-nombre">@zona.Nombre</span>
+                <span style="font-size: 0.75rem; color: #64748b; margin-top: -4px;">
+                    @(zona.ValorHora > 0 ? $"${zona.ValorHora:N0}/hora" : "Gratuita")
+                </span>
                 <span class="zona-estado-lbl">@(ocupada ? $"{reservasZona.Count} reserva(s)" : "Disponible")</span>
                 @if (ocupada)
                 {
                     <div class="zona-horarios">
                         @foreach (var r in reservasZona)
                         {
-                            <span class="horario-chip">@r.HoraInicio – @r.HoraFin</span>
+                            <span class="horario-chip">@r.HoraInicio.ToString(@"hh\:mm") – @r.HoraFin.ToString(@"hh\:mm")</span>
                         }
                     </div>
                 }
@@ -44,19 +54,21 @@
 </div>
 
 @code {
-    [Parameter] public List<Reservas.ReservaItem> Reservas { get; set; } = new();
+    [Parameter] public List<ReservaDto> Reservas { get; set; } = new();
+    [Parameter] public List<ZonaComunDto> Zonas { get; set; } = new();
+    [Parameter] public string FiltroZona { get; set; } = "Todas";
     [Parameter] public DateTime FechaSeleccionada { get; set; } = DateTime.Today;
     [Parameter] public EventCallback<DateTime> OnFechaChanged { get; set; }
 
-    private record ZonaInfo(string Nombre, string Icono);
-    private List<ZonaInfo> _zonas = new()
+    private string GetIcono(string z) => z switch
     {
-        new("Salón Social", "🎉"),
-        new("BBQ",          "🔥"),
-        new("Piscina",      "🏊"),
-        new("Gimnasio",     "🏋️"),
-        new("Cancha",       "⚽"),
-        new("Terraza",      "🌅"),
-        new("Sala de Juegos","🎮"),
+        "Salón Social" => "🎉",
+        "BBQ" => "🔥",
+        "Piscina" => "🏊",
+        "Gimnasio" => "🏋️",
+        "Cancha" => "⚽",
+        "Terraza" => "🌅",
+        "Sala de Juegos" => "🎮",
+        _ => "📍"
     };
 }

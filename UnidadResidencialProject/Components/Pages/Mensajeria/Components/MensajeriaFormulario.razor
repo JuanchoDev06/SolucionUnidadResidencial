@@ -1,4 +1,4 @@
-﻿@using UnidadResidencialProject.Components.Pages.Mensajeria
+@using UnidadResidencialProject.Models
 
 <div class="modal-overlay">
     <div class="modal-box">
@@ -22,8 +22,13 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Apartamento Destinatario</label>
-                    <input class="form-control" type="text"
-                           placeholder="Ej: Apto 302" @bind="_apartamento" />
+                    <select class="form-control" @bind="_unidadId">
+                        <option value="0">— Seleccionar Apto —</option>
+                        @foreach (var a in Apartamentos)
+                        {
+                            <option value="@a.UnidadId">@(a.Torre?.Nombre) - Apto @a.Numero</option>
+                        }
+                    </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Nombre del Residente</label>
@@ -42,8 +47,16 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Fecha de Recepción</label>
-                    <input class="form-control" type="text"
-                           value="@DateTime.Now.ToString("d MMM h:mm tt")" readonly />
+                    <input class="form-control" type="date" @bind="_fechaRecepcion" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Estado Inicial</label>
+                    <select class="form-control" @bind="_estado">
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Entregado">Entregado</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -55,23 +68,38 @@
 </div>
 
 @code {
-    [Parameter] public EventCallback<Mensajeria.PaqueteItem> OnGuardar { get; set; }
+    [Inject] private UnidadResidencialProject.Services.AuthService AuthService { get; set; } = default!;
+
+    [Parameter] public List<ApartamentoDto> Apartamentos { get; set; } = new();
+    [Parameter] public EventCallback<MensajeriaCreateDto> OnGuardar { get; set; }
     [Parameter] public EventCallback OnCancelar { get; set; }
 
     private string _empresa = "";
     private string _guia = "";
-    private string _apartamento = "";
+    private int _unidadId = 0;
+    private DateTime _fechaRecepcion = DateTime.Now;
+    
+    // UI Only variables
     private string _residente = "";
     private string _tipo = "Paquete";
+    private string _estado = "Pendiente";
 
     private async Task Guardar()
     {
-        if (string.IsNullOrWhiteSpace(_empresa) || string.IsNullOrWhiteSpace(_apartamento)) return;
+        if (string.IsNullOrWhiteSpace(_empresa) || _unidadId <= 0) return;
 
-        var nuevo = new Mensajeria.PaqueteItem(
-            0, _empresa, _guia, _apartamento, _residente,
-            "Hoy " + DateTime.Now.ToString("h:mm tt"),
-            null, _tipo, "Pendiente");
+        var userId = await AuthService.GetUserIdAsync();
+
+        var tipoPrefix = $"[{_tipo}] ";
+
+        var nuevo = new MensajeriaCreateDto
+        {
+            Empresa = tipoPrefix + _empresa,
+            Guia = _guia,
+            UnidadId = _unidadId,
+            FechaRecepcion = _fechaRecepcion,
+            UsuarioId = userId > 0 ? userId : 4 // Default a 4 si falla
+        };
 
         await OnGuardar.InvokeAsync(nuevo);
     }

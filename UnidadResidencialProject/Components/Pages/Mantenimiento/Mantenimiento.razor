@@ -1,4 +1,7 @@
-﻿@page "/mantenimiento"
+@page "/mantenimiento"
+@using UnidadResidencialProject.Models
+@using UnidadResidencialProject.Services
+@inject MantenimientoService MantenimientoService
 
 <PageTitle>Mantenimiento — Conjunto Residencial</PageTitle>
 
@@ -29,7 +32,7 @@
             <MantenimientoFiltros
                 FiltroEstado="@_filtroEstado"
                 FiltroTipo="@_filtroTipo"
-                Tipos="@_tipos"
+                Tipos="@_nombresTipos"
                 OnEstadoChanged="@((e) => _filtroEstado = e)"
                 OnTipoChanged="@((t) => _filtroTipo = t)" />
 
@@ -53,67 +56,91 @@
 </div>
 
 @code {
-    private bool   _mostrarFormulario = false;
+    private bool _mostrarFormulario = false;
     private string _filtroEstado = "Todos";
-    private string _filtroTipo   = "Todos";
+    private string _filtroTipo = "Todos";
 
-    // ── Modelos ───────────────────────────────────────────
-    public record MantenimientoItem(
-        int    Id,
-        string Tipo,
-        string ZonaComun,
-        string Descripcion,
-        string Proveedor,
-        string Fecha,
-        string Estado,
-        decimal Costo);
+    private bool _cargando = true;
+    private string? _error;
 
-    // ── Catálogos ─────────────────────────────────────────
-    private List<string> _tipos = new()
+    private List<MantenimientoDto> _mantenimientos = new();
+    private List<TipoMantenimientoDto> _tipos = new();
+    private List<ZonaComunDto> _zonasComunes = new();
+    private List<string> _nombresTipos = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        "Ascensor", "Jardín", "Parque Infantil",
-        "Piscina", "Eléctrico", "Plomería", "Pintura", "Otro"
-    };
+        await CargarDatos();
+    }
 
-    private List<string> _zonasComunes = new()
+    private async Task CargarDatos()
     {
-        "Torre A", "Torre B", "Zona Verde", "Parque Infantil",
-        "Piscina", "Salón Social", "Gimnasio", "Parqueadero", "General"
-    };
+        try
+        {
+            _cargando = true;
+            _error = null;
 
-    // ── Datos simulados ───────────────────────────────────
-    private List<MantenimientoItem> _mantenimientos = new()
-    {
-        new(1,  "Ascensor",       "Torre B",        "Revisión técnica anual y lubricación de cables",   "Otis Colombia",       "24 Feb 2026", "Pendiente",   1800000),
-        new(2,  "Jardín",         "Zona Verde",      "Poda de árboles, fertilización y riego",          "Jardines del Norte",  "25 Feb 2026", "En curso",    450000),
-        new(3,  "Parque Infantil","Parque Infantil",  "Inspección de equipos, pintura y tornillería",    "MantenPro SAS",       "1 Mar 2026",  "Pendiente",   320000),
-        new(4,  "Piscina",        "Piscina",          "Limpieza profunda y balance de químicos",         "AquaClean Ltda",      "2 Mar 2026",  "Pendiente",   600000),
-        new(5,  "Eléctrico",      "General",          "Revisión tableros eléctricos zonas comunes",      "Electro Andes",       "18 Feb 2026", "Completado",  950000),
-        new(6,  "Plomería",       "Torre A",          "Reparación tubería 3er piso — fuga detectada",    "Plomería Express",    "15 Feb 2026", "Completado",  280000),
-        new(7,  "Ascensor",       "Torre A",          "Cambio de puertas y ajuste de niveles",           "Otis Colombia",       "10 Feb 2026", "Completado",  2400000),
-        new(8,  "Pintura",        "Salón Social",     "Pintura general paredes y techo salón social",    "Pinturas Andinas",    "5 Mar 2026",  "Pendiente",   750000),
-        new(9,  "Gimnasio",       "Gimnasio",         "Mantenimiento equipos cardio y de pesas",         "FitService Colombia", "8 Mar 2026",  "En curso",    400000),
-        new(10, "Eléctrico",      "Parqueadero",      "Instalación luces LED parqueadero sótano",        "Electro Andes",       "12 Mar 2026", "Pendiente",   1100000),
-    };
+            _mantenimientos = await MantenimientoService.GetMantenimientosAsync();
+            _tipos = await MantenimientoService.GetTiposMantenimientoAsync();
+            _zonasComunes = await MantenimientoService.GetZonasComunesAsync();
+
+            _nombresTipos = _tipos.Select(t => t.Nombre).ToList();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Error al cargar datos: {ex.Message}";
+        }
+        finally
+        {
+            _cargando = false;
+        }
+    }
 
     // ── Computed ──────────────────────────────────────────
-    private List<MantenimientoItem> MantenimientosFiltrados =>
+    private List<MantenimientoDto> MantenimientosFiltrados =>
         _mantenimientos
-            .Where(m => _filtroEstado == "Todos" || m.Estado == _filtroEstado)
-            .Where(m => _filtroTipo   == "Todos" || m.Tipo   == _filtroTipo)
+            .Where(m => _filtroEstado == "Todos" || (m.Estado ?? "Pendiente") == _filtroEstado)
+            .Where(m => _filtroTipo == "Todos" || m.TipoMantenimiento?.Nombre == _filtroTipo)
             .ToList();
 
     // ── Acciones ──────────────────────────────────────────
-    private void CambiarEstado((int Id, string NuevoEstado) datos)
+    private async Task CambiarEstado((int Id, string NuevoEstado) datos)
     {
-        var idx = _mantenimientos.FindIndex(m => m.Id == datos.Id);
+        var idx = _mantenimientos.FindIndex(m => m.MantenimientoId == datos.Id);
         if (idx >= 0)
-            _mantenimientos[idx] = _mantenimientos[idx] with { Estado = datos.NuevoEstado };
+        {
+            var mant = _mantenimientos[idx];
+            var estadoAnterior = mant.Estado;
+            mant.Estado = datos.NuevoEstado;
+
+            var (ok, error) = await MantenimientoService.ActualizarMantenimientoAsync(datos.Id, mant);
+            if (!ok)
+            {
+                mant.Estado = estadoAnterior;
+                _error = $"Error al actualizar estado: {error}";
+            }
+        }
     }
 
-    private void GuardarMantenimiento(MantenimientoItem nuevo)
+    private async Task GuardarMantenimiento(MantenimientoCreateDto nuevo)
     {
-        _mantenimientos.Insert(0, nuevo with { Id = _mantenimientos.Count + 1 });
+        try
+        {
+            var (ok, error) = await MantenimientoService.CrearMantenimientoAsync(nuevo);
+            if (ok)
+            {
+                _error = null;
+                await CargarDatos(); // Refresh list
+            }
+            else
+            {
+                _error = $"Error al registrar mantenimiento: {error}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = $"Error al guardar: {ex.Message}";
+        }
         _mostrarFormulario = false;
     }
 }

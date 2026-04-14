@@ -1,4 +1,4 @@
-﻿<div class="filtros-bar">
+<div class="filtros-bar">
     <div class="filtros-grupo">
         <span class="filtros-label">Estado:</span>
         @foreach (var estado in _estados)
@@ -30,6 +30,11 @@
     [Parameter] public EventCallback<string> OnZonaChanged { get; set; }
 
     private string _zonaLocal = "Todas";
+
+    protected override void OnParametersSet()
+    {
+        _zonaLocal = FiltroZona;
+    }
 
     private record EstadoOption(string Key, string Css);
     private List<EstadoOption> _estados = new()
