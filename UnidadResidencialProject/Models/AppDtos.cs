@@ -128,7 +128,31 @@ namespace UnidadResidencialProject.Models
         public int? IngresoId { get; set; }
     }
 
-    // ── Mantenimiento ───────────────────────────────────────
+    // ── Mantenimiento ─────────────────────────────────────
+    public class MantenimientoDto
+    {
+        public int MantenimientoId { get; set; }
+        public int TipoMantenimientoId { get; set; }
+        public DateTime Fecha { get; set; }
+        public string? Proveedor { get; set; }
+        public string? Descripcion { get; set; }
+        public decimal? Costo { get; set; }
+        public int? ZonaComunId { get; set; }
+        public string? Estado { get; set; } // ← nuevo
+        public TipoMantenimientoDto? TipoMantenimiento { get; set; }
+        public ZonaComunDto? ZonaComun { get; set; }
+    }
+
+    public class MantenimientoCreateDto
+    {
+        public int TipoMantenimientoId { get; set; }
+        public DateTime Fecha { get; set; } = DateTime.Today;
+        public string? Proveedor { get; set; }
+        public string? Descripcion { get; set; }
+        public decimal? Costo { get; set; }
+        public int? ZonaComunId { get; set; }
+    }
+
     public class TipoMantenimientoDto
     {
         public int TipoMantenimientoId { get; set; }
@@ -141,30 +165,6 @@ namespace UnidadResidencialProject.Models
         public string Nombre { get; set; } = "";
         public bool RequierePago { get; set; }
         public decimal? ValorHora { get; set; }
-    }
-
-    public class MantenimientoDto
-    {
-        public int MantenimientoId { get; set; }
-        public int TipoMantenimientoId { get; set; }
-        public DateTime Fecha { get; set; }
-        public string? Proveedor { get; set; }
-        public string? Descripcion { get; set; }
-        public decimal? Costo { get; set; }
-        public int? ZonaComunId { get; set; }
-        public string? Estado { get; set; } = "Pendiente";
-        public TipoMantenimientoDto? TipoMantenimiento { get; set; }
-        public ZonaComunDto? ZonaComun { get; set; }
-    }
-
-    public class MantenimientoCreateDto
-    {
-        public int TipoMantenimientoId { get; set; }
-        public DateTime Fecha { get; set; } = DateTime.Now;
-        public string? Proveedor { get; set; }
-        public string? Descripcion { get; set; }
-        public decimal? Costo { get; set; }
-        public int? ZonaComunId { get; set; }
     }
 
     // ── Mensajería ──────────────────────────────────────────
