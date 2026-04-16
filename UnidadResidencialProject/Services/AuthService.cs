@@ -120,5 +120,38 @@ namespace UnidadResidencialProject.Services
 
             return 0;
         }
+
+        public async Task<string> GetRolAsync()
+        {
+            var token = await GetTokenAsync();
+            if (string.IsNullOrEmpty(token)) return "";
+            try
+            {
+                var parts = token.Split('.');
+                if (parts.Length != 3) return "";
+                var payload = parts[1];
+                payload = payload.Replace('-', '+').Replace('_', '/');
+                switch (payload.Length % 4)
+                {
+                    case 2: payload += "=="; break;
+                    case 3: payload += "="; break;
+                }
+                var bytes = Convert.FromBase64String(payload);
+                var json = System.Text.Encoding.UTF8.GetString(bytes);
+                var doc = JsonDocument.Parse(json);
+                string[] claimNames = {
+            "role",
+            "roles",
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+        };
+                foreach (var claim in claimNames)
+                {
+                    if (doc.RootElement.TryGetProperty(claim, out var value))
+                        return value.GetString() ?? "";
+                }
+            }
+            catch { }
+            return "";
+        }
     }
 }
