@@ -3,6 +3,8 @@
 @using UnidadResidencialProject.Services
 @using UnidadResidencialProject.Components.Pages.Parqueadero.Components
 @inject ParqueaderoService ParqueaderoService
+@inject AuthService AuthService
+@inject NavigationManager Nav
 
 <PageTitle>Parqueadero — Conjunto Residencial</PageTitle>
 
@@ -106,6 +108,7 @@
 @code {
     private bool _mostrarFormVisitante = false;
     private bool _mostrarFormResidente = false;
+    private bool _inicializado = false;
     private string _filtro = "Todos";
     private bool _cargando = true;
     private string? _error;
@@ -161,9 +164,20 @@
     )).ToList();
 
     // ── Ciclo de vida ─────────────────────────────────────
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender || _inicializado) return;
+        _inicializado = true;
+
+        var rol = await AuthService.GetRolAsync();
+        if (rol != "Administrador" && rol != "Vigilante")
+        {
+            Nav.NavigateTo("/dashboard");
+            return;
+        }
+
         await CargarDatos();
+        StateHasChanged();
     }
 
     private async Task CargarDatos()

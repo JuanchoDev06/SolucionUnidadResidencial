@@ -5,12 +5,17 @@
 @code {
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender) return;
+
+        if (!await AuthService.IsAuthenticatedAsync())
         {
-            if (await AuthService.IsAuthenticatedAsync())
-                Nav.NavigateTo("/dashboard");
-            else
-                Nav.NavigateTo("/login");
+            Nav.NavigateTo("/login");
+            return;
         }
+
+        var rol = await AuthService.GetRolAsync();
+
+        // Redirigir según rol
+        Nav.NavigateTo("/dashboard");
     }
 }

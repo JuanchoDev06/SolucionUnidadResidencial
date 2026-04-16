@@ -3,6 +3,8 @@
 @using UnidadResidencialProject.Services
 @using UnidadResidencialProject.Components.Pages.Residentes.Components
 @inject ResidenteService ResidenteService
+@inject AuthService AuthService
+@inject NavigationManager Nav
 
 
 <PageTitle>Residentes — Conjunto Residencial</PageTitle>
@@ -71,7 +73,7 @@
     private bool _mostrarFormulario = false;
     private string _filtroTorre = "Todas";
     private string _filtroTipo = "Todos";
-    
+    private bool _inicializado = false;
     private bool _cargando = true;
     private string? _error;
 
@@ -81,9 +83,20 @@
     
     private List<string> _nombresTorres = new();
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender || _inicializado) return;
+        _inicializado = true;
+
+        var rol = await AuthService.GetRolAsync();
+        if (rol != "Administrador")
+        {
+            Nav.NavigateTo("/dashboard");
+            return;
+        }
+
         await CargarDatos();
+        StateHasChanged();
     }
 
     private async Task CargarDatos()

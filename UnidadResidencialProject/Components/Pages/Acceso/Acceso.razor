@@ -4,6 +4,7 @@
 @using UnidadResidencialProject.Models
 @inject IngresoService IngresoService
 @inject AuthService AuthService
+@inject NavigationManager Nav
 
 <PageTitle>Control de Acceso — Conjunto Residencial</PageTitle>
 
@@ -90,6 +91,7 @@
     private bool _mostrarFormulario = false;
     private string _filtroTipo = "Todos";
     private bool _cargando = true;
+    private bool _inicializado = false;
     private string? _error;
 
     private List<IngresoDto> _ingresos = new();
@@ -100,10 +102,20 @@
             ? _ingresos
             : _ingresos.Where(i => i.Tipo == _filtroTipo).ToList();
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await CargarIngresos();
-        await CargarApartamentos();  // ← nuevo
+        if (!firstRender || _inicializado) return;
+        _inicializado = true;
+
+        var rol = await AuthService.GetRolAsync();
+        if (rol != "Administrador" && rol != "Vigilante")
+        {
+            Nav.NavigateTo("/dashboard");
+            return;
+        }
+
+        await CargarDatos();
+        StateHasChanged();
     }
 
     private async Task CargarIngresos()
@@ -133,9 +145,13 @@
         catch { }
     }
 
-    private void AbrirFormulario() => _mostrarFormulario = true;
+    private async Task CargarDatos()
+    {
+        await CargarIngresos();
+        await CargarApartamentos();
+    }
 
-    
+    private void AbrirFormulario() => _mostrarFormulario = true;
 
     private async Task GuardarIngreso(IngresoCreateDto nuevo)
     {

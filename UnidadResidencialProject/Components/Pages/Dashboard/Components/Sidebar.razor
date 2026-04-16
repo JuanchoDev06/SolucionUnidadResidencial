@@ -19,53 +19,75 @@
             <span class="brand-sub">Torre Laureles · NIT 900.123.456</span>
         </div>
     </div>
+
     <nav class="sidebar-nav">
         <div class="nav-section-label">General</div>
-        <a class="nav-item active" href="/">
+        <a class="nav-item" href="/dashboard">
             <span class="nav-icon">⊞</span>
             <span>Dashboard</span>
-            <span class="nav-badge active-dot"></span>
         </a>
-        <a class="nav-item" href="/residentes">
-            <span class="nav-icon">◈</span>
-            <span>Residentes</span>
-        </a>
-        <a class="nav-item" href="/residentes">
-            <span class="nav-icon">▦</span>
-            <span>Apartamentos</span>
-        </a>
+
+        @if (_esAdmin)
+        {
+            <a class="nav-item" href="/residentes">
+                <span class="nav-icon">◈</span>
+                <span>Residentes</span>
+            </a>
+            <a class="nav-item" href="/residentes">
+                <span class="nav-icon">▦</span>
+                <span>Apartamentos</span>
+            </a>
+        }
+
         <div class="nav-section-label" style="margin-top:1.5rem">Operaciones</div>
-        <a class="nav-item" href="/ingresos">
-            <span class="nav-icon">⇌</span>
-            <span>Control de Acceso</span>
-            <span class="nav-pill">12</span>
-        </a>
-        <a class="nav-item" href="/parqueadero">
-            <span class="nav-icon">⬡</span>
-            <span>Parqueadero</span>
-            <span class="nav-pill alert">2</span>
-        </a>
+
+        @if (_esAdmin || _esVigilante)
+        {
+            <a class="nav-item" href="/ingresos">
+                <span class="nav-icon">⇌</span>
+                <span>Control de Acceso</span>
+            </a>
+            <a class="nav-item" href="/parqueadero">
+                <span class="nav-icon">⬡</span>
+                <span>Parqueadero</span>
+            </a>
+        }
+
         <a class="nav-item" href="/mensajeria">
             <span class="nav-icon">◻</span>
             <span>Mensajería</span>
-            <span class="nav-pill">7</span>
         </a>
+
         <a class="nav-item" href="/reservas">
             <span class="nav-icon">◷</span>
             <span>Reservas</span>
         </a>
-        <div class="nav-section-label" style="margin-top:1.5rem">Administración</div>
-        <a class="nav-item" href="/mantenimiento">
-            <span class="nav-icon">⚙</span>
-            <span>Mantenimiento</span>
-        </a>
+
+        @if (_esAdmin || _esVigilante)
+        {
+            <div class="nav-section-label" style="margin-top:1.5rem">Administración</div>
+            <a class="nav-item" href="/mantenimiento">
+                <span class="nav-icon">⚙</span>
+                <span>Mantenimiento</span>
+            </a>
+        }
+
+        @if (_esAdmin)
+        {
+            <a class="nav-item" href="/admin">
+                <span class="nav-icon">🛡</span>
+                <span>Administración</span>
+            </a>
+        }
+
     </nav>
+
     <div class="sidebar-footer">
         <div class="user-chip">
-            <div class="user-avatar">AD</div>
+            <div class="user-avatar">@_inicial</div>
             <div class="user-info">
-                <span class="user-name">Administrador</span>
-                <span class="user-role">Superusuario</span>
+                <span class="user-name">@_nombreRol</span>
+                <span class="user-role">@_rol</span>
             </div>
             <button class="logout-btn" @onclick="CerrarSesion" title="Cerrar sesión">⏻</button>
         </div>
@@ -73,6 +95,23 @@
 </aside>
 
 @code {
+    private bool _esAdmin = false;
+    private bool _esVigilante = false;
+    private string _rol = "";
+    private string _nombreRol = "";
+    private string _inicial = "?";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _rol = await AuthService.GetRolAsync();
+        _esAdmin = _rol == "Administrador";
+        _esVigilante = _rol == "Vigilante";
+        _nombreRol = _esAdmin ? "Administrador" : _esVigilante ? "Vigilante" : "Residente";
+        _inicial = _nombreRol.Length > 0 ? _nombreRol[0].ToString().ToUpper() : "?";
+        StateHasChanged();
+    }
+
     private async Task CerrarSesion()
     {
         await AuthService.LogoutAsync();
