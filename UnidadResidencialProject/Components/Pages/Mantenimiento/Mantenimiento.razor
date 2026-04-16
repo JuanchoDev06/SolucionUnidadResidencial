@@ -1,6 +1,7 @@
 @page "/mantenimiento"
 @using UnidadResidencialProject.Models
 @using UnidadResidencialProject.Services
+@using UnidadResidencialProject.Components.Pages.Mantenimiento.Components
 @inject MantenimientoService MantenimientoService
 
 <PageTitle>Mantenimiento — Conjunto Residencial</PageTitle>
@@ -25,31 +26,41 @@
 
         <div class="page-body">
 
-            <!-- Tarjetas resumen por tipo -->
-            <MantenimientoTarjetas Mantenimientos="@_mantenimientos" />
+            @if (_cargando)
+            {
+                <p style="color: var(--text3); font-style: italic;">Cargando información...</p>
+            }
+            else if (_error != null)
+            {
+                <div style="color: #DC2626; padding: 1rem;">
+                    @_error
+                    <button class="btn-primary" style="margin-left: 1rem;" @onclick="CargarDatos">
+                        Reintentar
+                    </button>
+                </div>
+            }
+            else
+            {
+                <MantenimientoTarjetas Mantenimientos="@_mantenimientos" />
 
-            <!-- Filtros -->
-            <MantenimientoFiltros
-                FiltroEstado="@_filtroEstado"
-                FiltroTipo="@_filtroTipo"
-                Tipos="@_nombresTipos"
-                OnEstadoChanged="@((e) => _filtroEstado = e)"
-                OnTipoChanged="@((t) => _filtroTipo = t)" />
+                <MantenimientoFiltros FiltroEstado="@_filtroEstado"
+                                      FiltroTipo="@_filtroTipo"
+                                      Tipos="@_tipos.Select(t => t.Nombre).ToList()"
+                                      OnEstadoChanged="@((e) => _filtroEstado = e)"
+                                      OnTipoChanged="@((t) => _filtroTipo = t)" />
 
-            <!-- Tabla -->
-            <MantenimientoTabla
-                Mantenimientos="@MantenimientosFiltrados"
-                OnCambiarEstado="@CambiarEstado" />
+                <MantenimientoTabla Mantenimientos="@MantenimientosFiltrados"
+                                    OnCambiarEstado="@CambiarEstado" />
+            }
 
         </div>
 
         @if (_mostrarFormulario)
         {
-            <MantenimientoFormulario
-                Tipos="@_tipos"
-                ZonasComunes="@_zonasComunes"
-                OnGuardar="@GuardarMantenimiento"
-                OnCancelar="@(() => _mostrarFormulario = false)" />
+            <MantenimientoFormulario Tipos="@_tipos"
+                                     ZonasComunes="@_zonas"
+                                     OnGuardar="@GuardarMantenimiento"
+                                     OnCancelar="@(() => _mostrarFormulario = false)" />
         }
 
     </main>
@@ -59,14 +70,19 @@
     private bool _mostrarFormulario = false;
     private string _filtroEstado = "Todos";
     private string _filtroTipo = "Todos";
-
     private bool _cargando = true;
     private string? _error;
 
     private List<MantenimientoDto> _mantenimientos = new();
     private List<TipoMantenimientoDto> _tipos = new();
-    private List<ZonaComunDto> _zonasComunes = new();
-    private List<string> _nombresTipos = new();
+    private List<ZonaComunDto> _zonas = new();
+
+    // ── Filtrado directo sobre DTOs ───────────────────────
+    private List<MantenimientoDto> MantenimientosFiltrados =>
+        _mantenimientos
+            .Where(m => _filtroEstado == "Todos" || (m.Estado ?? "Pendiente") == _filtroEstado)
+            .Where(m => _filtroTipo == "Todos" || (m.TipoMantenimiento?.Nombre ?? "") == _filtroTipo)
+            .ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -79,12 +95,9 @@
         {
             _cargando = true;
             _error = null;
-
             _mantenimientos = await MantenimientoService.GetMantenimientosAsync();
             _tipos = await MantenimientoService.GetTiposMantenimientoAsync();
-            _zonasComunes = await MantenimientoService.GetZonasComunesAsync();
-
-            _nombresTipos = _tipos.Select(t => t.Nombre).ToList();
+            _zonas = await MantenimientoService.GetZonasComunesAsync();
         }
         catch (Exception ex)
         {
@@ -96,50 +109,40 @@
         }
     }
 
-    // ── Computed ──────────────────────────────────────────
-    private List<MantenimientoDto> MantenimientosFiltrados =>
-        _mantenimientos
-            .Where(m => _filtroEstado == "Todos" || (m.Estado ?? "Pendiente") == _filtroEstado)
-            .Where(m => _filtroTipo == "Todos" || m.TipoMantenimiento?.Nombre == _filtroTipo)
-            .ToList();
-
-    // ── Acciones ──────────────────────────────────────────
     private async Task CambiarEstado((int Id, string NuevoEstado) datos)
     {
         var idx = _mantenimientos.FindIndex(m => m.MantenimientoId == datos.Id);
-        if (idx >= 0)
-        {
-            var mant = _mantenimientos[idx];
-            var estadoAnterior = mant.Estado;
-            mant.Estado = datos.NuevoEstado;
+        if (idx < 0) return;
 
-            var (ok, error) = await MantenimientoService.ActualizarMantenimientoAsync(datos.Id, mant);
-            if (!ok)
-            {
-                mant.Estado = estadoAnterior;
-                _error = $"Error al actualizar estado: {error}";
-            }
+        var estadoAnterior = _mantenimientos[idx].Estado;
+        _mantenimientos[idx].Estado = datos.NuevoEstado;
+
+        var (ok, error) = await MantenimientoService.ActualizarMantenimientoAsync(
+            datos.Id, _mantenimientos[idx]);
+
+        if (!ok)
+        {
+            _mantenimientos[idx].Estado = estadoAnterior;
+            _error = $"Error al actualizar estado: {error}";
+        }
+        else
+        {
+            _error = null;
+            await CargarDatos();
         }
     }
 
-    private async Task GuardarMantenimiento(MantenimientoCreateDto nuevo)
+    private async Task GuardarMantenimiento(MantenimientoCreateDto dto)
     {
-        try
+        var (ok, error) = await MantenimientoService.CrearMantenimientoAsync(dto);
+        if (ok)
         {
-            var (ok, error) = await MantenimientoService.CrearMantenimientoAsync(nuevo);
-            if (ok)
-            {
-                _error = null;
-                await CargarDatos(); // Refresh list
-            }
-            else
-            {
-                _error = $"Error al registrar mantenimiento: {error}";
-            }
+            _error = null;
+            await CargarDatos();
         }
-        catch (Exception ex)
+        else
         {
-            _error = $"Error al guardar: {ex.Message}";
+            _error = $"Error al registrar mantenimiento: {error}";
         }
         _mostrarFormulario = false;
     }

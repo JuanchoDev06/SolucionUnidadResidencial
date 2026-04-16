@@ -21,7 +21,7 @@
                 <div class="form-group">
                     <label class="form-label">Zona Común</label>
                     <select class="form-control" @bind="_zonaId">
-                        <option value="0">— Seleccionar zona —</option>
+                        <option value="0">— Opcional —</option>
                         @foreach (var z in ZonasComunes)
                         {
                             <option value="@z.ZonaComunId">@z.Nombre</option>
@@ -77,12 +77,12 @@
 
     private async Task Guardar()
     {
-        if (_tipoId <= 0 || _zonaId <= 0) return;
+        if (_tipoId <= 0) return;
 
         var nuevo = new MantenimientoCreateDto
         {
             TipoMantenimientoId = _tipoId,
-            ZonaComunId = _zonaId,
+            ZonaComunId = _zonaId > 0 ? _zonaId : null,
             Descripcion = _descripcion,
             Proveedor = _proveedor,
             Fecha = _fecha,
