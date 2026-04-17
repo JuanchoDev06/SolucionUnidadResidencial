@@ -1,0 +1,141 @@
+﻿@page "/admin"
+@using UnidadResidencialProject.Models
+@using UnidadResidencialProject.Services
+@using UnidadResidencialProject.Components.Pages.Admin.Components
+@inject AdminService AdminService
+@inject AuthService AuthService
+@inject NavigationManager Nav
+
+<PageTitle>Administración — ResidenciaPro</PageTitle>
+
+<div class="crm-shell">
+    <Sidebar />
+    <main class="main-content">
+
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Panel de Administración</h1>
+                <span class="page-breadcrumb">Gestión avanzada del sistema — Solo Administradores</span>
+            </div>
+        </header>
+
+        <div class="page-body">
+            @if (_cargando)
+            {
+                <p style="color: var(--text3); font-style: italic;">Cargando...</p>
+            }
+            else if (_error != null)
+            {
+                <div style="color: #DC2626; padding: 1rem;">
+                    @_error
+                    <button class="btn-primary" style="margin-left: 1rem;" @onclick="CargarDatos">
+                        Reintentar
+                    </button>
+                </div>
+            }
+            else
+            {
+                <!-- Tabs de navegación -->
+                <div class="admin-tabs">
+                    @foreach (var tab in _tabs)
+                    {
+                        <button class="tab-btn @(_tabActiva == tab.Key ? "active" : "")"
+                                @onclick="@(() => _tabActiva = tab.Key)">
+                            <span>@tab.Icono</span>
+                            <span>@tab.Label</span>
+                        </button>
+                    }
+                </div>
+
+                <!-- Contenido según tab activa -->
+                @if (_tabActiva == "usuarios")
+                {
+                    <AdminUsuarios Roles="@_roles"
+                                   OnRecargar="@CargarDatos" />
+                }
+                else if (_tabActiva == "roles")
+                {
+                    <AdminRoles Roles="@_roles"
+                                OnRecargar="@CargarDatos" />
+                }
+                else if (_tabActiva == "zonas")
+                {
+                    <AdminZonasComunes ZonasComunes="@_zonas"
+                                       OnRecargar="@CargarDatos" />
+                }
+                else if (_tabActiva == "torres")
+                {
+                    <AdminTorres Torres="@_torres"
+                                 Apartamentos="@_apartamentos"
+                                 OnRecargar="@CargarDatos" />
+                }
+                else if (_tabActiva == "tipos")
+                {
+                    <AdminTiposMantenimiento Tipos="@_tipos"
+                                             OnRecargar="@CargarDatos" />
+                }
+            }
+        </div>
+    </main>
+</div>
+
+@code {
+    private bool _cargando = true;
+    private bool _inicializado = false;
+    private string? _error;
+    private string _tabActiva = "usuarios";
+
+    private List<RolDto> _roles = new();
+    private List<ZonaComunDto> _zonas = new();
+    private List<TorreDto> _torres = new();
+    private List<ApartamentoDto> _apartamentos = new();
+    private List<TipoMantenimientoDto> _tipos = new();
+
+    private record TabItem(string Key, string Icono, string Label);
+    private List<TabItem> _tabs = new()
+    {
+        new("usuarios", "👥", "Usuarios"),
+        new("roles",    "🎭", "Roles"),
+        new("zonas",    "🏊", "Zonas Comunes"),
+        new("torres",   "🏢", "Torres & Aptos"),
+        new("tipos",    "⚙️", "Tipos Mantenimiento"),
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _inicializado) return;
+        _inicializado = true;
+
+        var rol = await AuthService.GetRolAsync();
+        if (rol != "Administrador")
+        {
+            Nav.NavigateTo("/dashboard");
+            return;
+        }
+
+        await CargarDatos();
+        StateHasChanged();
+    }
+
+    private async Task CargarDatos()
+    {
+        try
+        {
+            _cargando = true;
+            _error = null;
+            _roles = await AdminService.GetRolesAsync();
+            _zonas = await AdminService.GetZonasComunesAsync();
+            _torres = await AdminService.GetTorresAsync();
+            _apartamentos = await AdminService.GetApartamentosAsync();
+            _tipos = await AdminService.GetTiposMantenimientoAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Error al cargar datos: {ex.Message}";
+        }
+        finally
+        {
+            _cargando = false;
+        }
+    }
+}

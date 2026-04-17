@@ -1,0 +1,55 @@
+﻿@using UnidadResidencialProject.Models
+@using UnidadResidencialProject.Services
+@inject AdminService AdminService
+
+<div class="admin-panel">
+    <div class="panel-header">
+        <h2 class="panel-title">⚙️ Tipos de Mantenimiento</h2>
+        <div class="input-accion">
+            <input class="form-control" type="text"
+                   placeholder="Nombre del tipo" @bind="_nuevoTipo"
+                   style="width:200px" />
+            <button class="btn-primary" @onclick="CrearTipo">+ Agregar</button>
+        </div>
+    </div>
+
+    @if (_error != null)
+    {
+        <div style="color: #DC2626; margin-bottom: 1rem;">@_error</div>
+    }
+
+    <div class="tipos-grid">
+        @foreach (var t in Tipos)
+        {
+            <div class="tipo-card">
+                <span class="tipo-nombre">@t.Nombre</span>
+                <button class="btn-eliminar" @onclick="@(() => EliminarTipo(t.TipoMantenimientoId))">
+                    ✕
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<TipoMantenimientoDto> Tipos { get; set; } = new();
+    [Parameter] public EventCallback OnRecargar { get; set; }
+
+    private string _nuevoTipo = "";
+    private string? _error;
+
+    private async Task CrearTipo()
+    {
+        if (string.IsNullOrWhiteSpace(_nuevoTipo)) return;
+        var (ok, error) = await AdminService.CrearTipoMantenimientoAsync(_nuevoTipo);
+        if (ok) { _nuevoTipo = ""; await OnRecargar.InvokeAsync(); }
+        else _error = error;
+    }
+
+    private async Task EliminarTipo(int id)
+    {
+        var (ok, error) = await AdminService.EliminarTipoMantenimientoAsync(id);
+        if (ok) await OnRecargar.InvokeAsync();
+        else _error = error;
+    }
+}
