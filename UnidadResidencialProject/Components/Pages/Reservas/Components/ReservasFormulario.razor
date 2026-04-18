@@ -35,30 +35,57 @@
                            @bind="_horaFinTimeOnly" />
                 </div>
             </div>
+            @if (_esAdmin || _esVigilante)
+            {
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Residente</label>
+                        <input class="form-control" type="text"
+                               placeholder="Ej: María López" @bind="_residente" />
+                    </div>
+                    <div class="form-group" style="visibility: hidden;"></div>
+                </div>
+            }
+
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Residente</label>
-                    <input class="form-control" type="text"
-                           placeholder="Ej: María López" @bind="_residente" />
+                    <label class="form-label">
+                        Valor por Hora ($)
+                        @if (!_esAdmin)
+                        {
+                            <span style="color: var(--text3); font-weight:400;">
+                                — Fijado por administración
+                            </span>
+                        }
+                    </label>
+                    @if (_esAdmin)
+                    {
+                        <!-- Admin puede modificar el valor -->
+                        <input class="form-control" type="number" @bind="_valorHora" />
+                    }
+                    else
+                    {
+                        <!-- Residente/Vigilante ven el valor fijo -->
+                        <input class="form-control" type="number"
+                               value="@_valorHora" readonly
+                               style="background:#F3F4F6; cursor:not-allowed;" />
+                    }
                 </div>
-                <div class="form-group" style="visibility: hidden;">
-                    <!-- Espacio removido de Apartamento que solicitaste -->
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Valor por Hora ($)</label>
-                    <input class="form-control" type="number"
-                           @bind="_valorHora" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Estado Inicial</label>
-                    <select class="form-control" @bind="_estado">
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="Confirmada">Confirmada</option>
-                    </select>
-                </div>
+                @if (_esAdmin || _esVigilante)
+                {
+                    <div class="form-group">
+                        <label class="form-label">Estado Inicial</label>
+                        <select class="form-control" @bind="_estado">
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Confirmada">Confirmada</option>
+                        </select>
+                    </div>
+                }
+                else
+                {
+                    <!-- Residentes siempre crean en Pendiente -->
+                    <div class="form-group" style="visibility:hidden;"></div>
+                }
             </div>
 
             @if (_errorLocal != "")
@@ -87,12 +114,21 @@
     private DateTime _fecha = DateTime.Today.AddDays(1);
     private TimeOnly _horaInicioTimeOnly = new TimeOnly(9, 0);
     private TimeOnly _horaFinTimeOnly = new TimeOnly(11, 0);
-    
-    // UI Only
     private string _estado = "Pendiente";
     private string _residente = "";
     private decimal _valorHora = 0;
     private string _errorLocal = "";
+
+    // ── Rol del usuario logueado ──────────────────────────
+    private bool _esAdmin = false;
+    private bool _esVigilante = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rol = await AuthService.GetRolAsync();
+        _esAdmin = rol == "Administrador";
+        _esVigilante = rol == "Vigilante";
+    }
 
     private void OnZonaChanged(ChangeEventArgs e)
     {
@@ -100,6 +136,8 @@
         {
             _zonaId = val;
             var zona = Zonas.FirstOrDefault(z => z.ZonaComunId == val);
+
+            // Siempre toma el valor de la BD
             _valorHora = zona?.ValorHora ?? 0;
         }
     }
@@ -111,20 +149,19 @@
             _errorLocal = "Debes seleccionar una zona común.";
             return;
         }
-        
+
         _errorLocal = "";
 
-        var _horaInicio = _horaInicioTimeOnly.ToTimeSpan();
-        var _horaFin = _horaFinTimeOnly.ToTimeSpan();
-
+        var horaInicio = _horaInicioTimeOnly.ToTimeSpan();
+        var horaFin = _horaFinTimeOnly.ToTimeSpan();
         var userId = await AuthService.GetUserIdAsync();
 
         bool conflicto = Reservas.Any(r =>
             r.ZonaComunId == _zonaId &&
             r.Fecha.Date == _fecha.Date &&
             r.Estado != "Cancelada" &&
-            ( (r.HoraInicio < _horaFin && r.HoraFin > _horaInicio) )
-        );
+            r.HoraInicio < horaFin &&
+            r.HoraFin > horaInicio);
 
         if (conflicto)
         {
@@ -136,9 +173,11 @@
         {
             ZonaComunId = _zonaId,
             Fecha = _fecha,
-            HoraInicio = _horaInicio,
-            HoraFin = _horaFin,
-            UsuarioId = userId > 0 ? userId : 4
+            HoraInicio = horaInicio,
+            HoraFin = horaFin,
+            UsuarioId = userId > 0 ? userId : 4,
+            // Estado: residente siempre Pendiente, admin/vigilante pueden elegir
+            Estado = (_esAdmin || _esVigilante) ? _estado : "Pendiente"
         };
 
         await OnGuardar.InvokeAsync(nueva);
