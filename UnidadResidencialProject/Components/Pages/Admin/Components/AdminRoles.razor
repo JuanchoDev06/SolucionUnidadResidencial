@@ -1,0 +1,53 @@
+﻿@using UnidadResidencialProject.Models
+@using UnidadResidencialProject.Services
+@inject AdminService AdminService
+
+<div class="admin-panel">
+    <div class="panel-header">
+        <h2 class="panel-title">🎭 Gestión de Roles</h2>
+        <div class="input-accion">
+            <input class="form-control" type="text" placeholder="Nombre del rol"
+                   @bind="_nuevoRol" style="width:200px" />
+            <button class="btn-primary" @onclick="CrearRol">+ Agregar</button>
+        </div>
+    </div>
+
+    @if (_error != null)
+    {
+        <div style="color: #DC2626; margin-bottom: 1rem;">@_error</div>
+    }
+
+    <div class="roles-grid">
+        @foreach (var r in Roles)
+        {
+            <div class="rol-card">
+                <span class="rol-nombre">@r.Nombre</span>
+                <span class="rol-id">ID: @r.RolId</span>
+                <button class="btn-eliminar" @onclick="@(() => EliminarRol(r.RolId))">✕</button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<RolDto> Roles { get; set; } = new();
+    [Parameter] public EventCallback OnRecargar { get; set; }
+
+    private string _nuevoRol = "";
+    private string? _error;
+
+    private async Task CrearRol()
+    {
+        if (string.IsNullOrWhiteSpace(_nuevoRol)) return;
+        var (ok, error) = await AdminService.CrearRolAsync(_nuevoRol);
+        if (ok) { _nuevoRol = ""; await OnRecargar.InvokeAsync(); }
+        else _error = error;
+    }
+
+    private async Task EliminarRol(int id)
+    {
+        var (ok, error) = await AdminService.EliminarRolAsync(id);
+        if (ok) await OnRecargar.InvokeAsync();
+        else _error = error;
+    }
+}

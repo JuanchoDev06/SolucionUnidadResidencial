@@ -1,0 +1,136 @@
+﻿@using UnidadResidencialProject.Models
+@using UnidadResidencialProject.Services
+@inject AdminService AdminService
+
+<div class="admin-panel">
+    <div class="panel-header">
+        <h2 class="panel-title">🏢 Torres & Apartamentos</h2>
+        <button class="btn-primary" @onclick="@(() => _mostrarFormTorre = true)">
+            + Nueva Torre
+        </button>
+    </div>
+
+    @if (_error != null)
+    {
+        <div style="color: #DC2626; margin-bottom: 1rem;">@_error</div>
+    }
+
+    <div class="torres-lista">
+        @foreach (var t in Torres)
+        {
+            var aptosTorre = Apartamentos.Where(a => a.TorreId == t.TorreId).ToList();
+            <div class="torre-item">
+                <div class="torre-header-row">
+                    <span class="torre-nombre">🏢 @t.Nombre</span>
+                    <span class="torre-count">@aptosTorre.Count apartamentos</span>
+                    <button class="btn-secondary-sm"
+                            @onclick="@(() => AbrirFormApto(t.TorreId))">
+                        + Apto
+                    </button>
+                </div>
+                <div class="aptos-grid">
+                    @foreach (var a in aptosTorre)
+                    {
+                        <span class="apto-chip">@a.Numero</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@if (_mostrarFormTorre)
+{
+    <div class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 class="modal-title">Nueva Torre</h2>
+                <button class="modal-close" @onclick="@(() => _mostrarFormTorre = false)">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nombre de la Torre</label>
+                    <input class="form-control" type="text"
+                           placeholder="Ej: Torre D" @bind="_nombreTorre" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" @onclick="@(() => _mostrarFormTorre = false)">Cancelar</button>
+                <button class="btn-save" @onclick="CrearTorre">Crear Torre</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_mostrarFormApto)
+{
+    <div class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 class="modal-title">Nuevo Apartamento</h2>
+                <button class="modal-close" @onclick="@(() => _mostrarFormApto = false)">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Número</label>
+                        <input class="form-control" type="text"
+                               placeholder="Ej: 301" @bind="_numeroApto" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Área (m²)</label>
+                        <input class="form-control" type="number"
+                               placeholder="Ej: 70" @bind="_areaApto" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" @onclick="@(() => _mostrarFormApto = false)">Cancelar</button>
+                <button class="btn-save" @onclick="CrearApto">Crear Apartamento</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public List<TorreDto> Torres { get; set; } = new();
+    [Parameter] public List<ApartamentoDto> Apartamentos { get; set; } = new();
+    [Parameter] public EventCallback OnRecargar { get; set; }
+
+    private bool _mostrarFormTorre = false;
+    private bool _mostrarFormApto = false;
+    private string? _error;
+    private string _nombreTorre = "";
+    private string _numeroApto = "";
+    private double _areaApto = 0;
+    private int _torreIdSeleccionada = 0;
+
+    private void AbrirFormApto(int torreId)
+    {
+        _torreIdSeleccionada = torreId;
+        _mostrarFormApto = true;
+    }
+
+    private async Task CrearTorre()
+    {
+        if (string.IsNullOrWhiteSpace(_nombreTorre)) return;
+        var (ok, error) = await AdminService.CrearTorreAsync(_nombreTorre, 1);
+        if (ok) { _mostrarFormTorre = false; _nombreTorre = ""; await OnRecargar.InvokeAsync(); }
+        else _error = error;
+    }
+
+    private async Task CrearApto()
+    {
+        if (string.IsNullOrWhiteSpace(_numeroApto)) return;
+        var dto = new ApartamentoDto
+        {
+            TorreId = _torreIdSeleccionada,
+            Numero = _numeroApto,
+            Tipo = "Apartamento",
+            Area = _areaApto
+        };
+        var (ok, error) = await AdminService.CrearApartamentoAsync(dto);
+        if (ok) { _mostrarFormApto = false; _numeroApto = ""; await OnRecargar.InvokeAsync(); }
+        else _error = error;
+    }
+}

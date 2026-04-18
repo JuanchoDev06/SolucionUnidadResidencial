@@ -1,0 +1,144 @@
+﻿@using UnidadResidencialProject.Models
+@using UnidadResidencialProject.Services
+@inject AdminService AdminService
+
+<div class="admin-panel">
+    <div class="panel-header">
+        <h2 class="panel-title">🏊 Zonas Comunes</h2>
+        <button class="btn-primary" @onclick="@(() => _mostrarForm = true)">+ Nueva Zona</button>
+    </div>
+
+    @if (_error != null)
+    {
+        <div style="color: #DC2626; margin-bottom: 1rem;">@_error</div>
+    }
+
+    <div class="tabla-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Requiere Pago</th>
+                    <th>Valor / Hora</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var z in ZonasComunes)
+                {
+                    <tr>
+                        <td class="td-nombre">@z.Nombre</td>
+                        <td>
+                            <span class="estado-tag @(z.RequierePago ? "activo" : "inactivo")">
+                                @(z.RequierePago ? "Sí" : "No")
+                            </span>
+                        </td>
+                        <td class="td-mono">
+                            @(z.RequierePago ? $"${z.ValorHora:N0}" : "Gratis")
+                        </td>
+                        <td>
+                            <button class="btn-editar" @onclick="@(() => AbrirEdicion(z))">
+                                ✏️ Editar
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (_mostrarForm)
+{
+    <div class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 class="modal-title">@(_editando != null ? "Editar Zona" : "Nueva Zona Común")</h2>
+                <button class="modal-close" @onclick="CerrarForm">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input class="form-control" type="text" @bind="_nombre"
+                               placeholder="Ej: Salón Social" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">¿Requiere Pago?</label>
+                        <select class="form-control" @bind="_requierePago">
+                            <option value="true">Sí</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Valor por Hora ($)</label>
+                        <input class="form-control" type="number" @bind="_valorHora"
+                               placeholder="0 si es gratis" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" @onclick="CerrarForm">Cancelar</button>
+                <button class="btn-save" @onclick="Guardar">Guardar</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public List<ZonaComunDto> ZonasComunes { get; set; } = new();
+    [Parameter] public EventCallback OnRecargar { get; set; }
+
+    private bool _mostrarForm = false;
+    private ZonaComunDto? _editando = null;
+    private string? _error;
+
+    private string _nombre = "";
+    private bool _requierePago = false;
+    private decimal _valorHora = 0;
+
+    private void AbrirEdicion(ZonaComunDto z)
+    {
+        _editando = z;
+        _nombre = z.Nombre;
+        _requierePago = z.RequierePago;
+        _valorHora = z.ValorHora ?? 0;
+        _mostrarForm = true;
+    }
+
+    private void CerrarForm()
+    {
+        _mostrarForm = false;
+        _editando = null;
+        _nombre = ""; _requierePago = false; _valorHora = 0;
+    }
+
+    private async Task Guardar()
+    {
+        if (string.IsNullOrWhiteSpace(_nombre)) return;
+        bool ok; string? error;
+
+        if (_editando != null)
+        {
+            _editando.Nombre = _nombre;
+            _editando.RequierePago = _requierePago;
+            _editando.ValorHora = _valorHora;
+            (ok, error) = await AdminService.ActualizarZonaComunAsync(_editando.ZonaComunId, _editando);
+        }
+        else
+        {
+            var nueva = new ZonaComunDto
+            {
+                Nombre = _nombre,
+                RequierePago = _requierePago,
+                ValorHora = _valorHora
+            };
+            (ok, error) = await AdminService.CrearZonaComunAsync(nueva);
+        }
+
+        if (ok) { CerrarForm(); await OnRecargar.InvokeAsync(); }
+        else _error = error;
+    }
+}

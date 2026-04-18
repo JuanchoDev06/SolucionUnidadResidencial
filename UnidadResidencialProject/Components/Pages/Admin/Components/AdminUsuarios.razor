@@ -1,0 +1,164 @@
+﻿@using UnidadResidencialProject.Models
+@using UnidadResidencialProject.Services
+@inject ResidenteService ResidenteService
+
+<div class="admin-panel">
+    <div class="panel-header">
+        <h2 class="panel-title">👥 Gestión de Usuarios</h2>
+        <button class="btn-primary" @onclick="@(() => _mostrarForm = true)">
+            + Nuevo Usuario
+        </button>
+    </div>
+
+    @if (_error != null)
+    {
+        <div style="color: #DC2626; margin-bottom: 1rem;">@_error</div>
+    }
+
+    <div class="tabla-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Documento</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in _usuarios)
+                {
+                    <tr>
+                        <td class="td-id">@u.UsuarioId</td>
+                        <td class="td-nombre">@u.Nombre</td>
+                        <td class="td-mono">@u.Documento</td>
+                        <td>@u.Email</td>
+                        <td><span class="rol-tag">@(u.Rol?.Nombre ?? "Sin rol")</span></td>
+                        <td>
+                            <span class="estado-tag @(u.Activo ? "activo" : "inactivo")">
+                                @(u.Activo ? "Activo" : "Inactivo")
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn-toggle @(u.Activo ? "desactivar" : "activar")"
+                                    @onclick="@(() => ToggleUsuario(u))">
+                                @(u.Activo ? "Desactivar" : "Activar")
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (_mostrarForm)
+{
+    <div class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 class="modal-title">Nuevo Usuario</h2>
+                <button class="modal-close" @onclick="@(() => _mostrarForm = false)">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input class="form-control" type="text" @bind="_nombre" placeholder="Nombre completo" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Documento</label>
+                        <input class="form-control" type="text" @bind="_documento" placeholder="Documento" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input class="form-control" type="email" @bind="_email" placeholder="Email" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Teléfono</label>
+                        <input class="form-control" type="text" @bind="_telefono" placeholder="Teléfono" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Rol</label>
+                        <select class="form-control" @bind="_rolId">
+                            <option value="0">— Seleccionar rol —</option>
+                            @foreach (var r in Roles)
+                            {
+                                <option value="@r.RolId">@r.Nombre</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contraseña temporal</label>
+                        <input class="form-control" type="text" @bind="_password" placeholder="Contraseña" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" @onclick="@(() => _mostrarForm = false)">Cancelar</button>
+                <button class="btn-save" @onclick="CrearUsuario">Crear Usuario</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public List<RolDto> Roles { get; set; } = new();
+    [Parameter] public EventCallback OnRecargar { get; set; }
+
+    private List<UsuarioDto> _usuarios = new();
+    private bool _mostrarForm = false;
+    private string? _error;
+
+    private string _nombre = "";
+    private string _documento = "";
+    private string _email = "";
+    private string _telefono = "";
+    private string _password = "";
+    private int _rolId = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarUsuarios();
+    }
+
+    private async Task CargarUsuarios()
+    {
+        try { _usuarios = await ResidenteService.GetUsuariosAsync(); }
+        catch (Exception ex) { _error = ex.Message; }
+    }
+
+    private async Task ToggleUsuario(UsuarioDto u)
+    {
+        u.Activo = !u.Activo;
+        var (ok, error) = await ResidenteService.ActualizarUsuarioAsync(u.UsuarioId, u);
+        if (!ok) { u.Activo = !u.Activo; _error = error; }
+        else await CargarUsuarios();
+    }
+
+    private async Task CrearUsuario()
+    {
+        if (_rolId <= 0 || string.IsNullOrWhiteSpace(_nombre)) return;
+        var dto = new UsuarioCreateDto
+        {
+            Nombre = _nombre,
+            Documento = _documento,
+            Email = _email,
+            Telefono = _telefono,
+            PasswordHash = _password,
+            RolId = _rolId,
+            Activo = true,
+            FechaCreacion = DateTime.Now
+        };
+        var (ok, error) = await ResidenteService.CrearUsuarioAsync(dto);
+        if (ok) { _mostrarForm = false; await CargarUsuarios(); await OnRecargar.InvokeAsync(); }
+        else _error = error;
+    }
+}
