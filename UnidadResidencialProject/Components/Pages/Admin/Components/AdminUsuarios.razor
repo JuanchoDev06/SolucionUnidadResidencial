@@ -1,13 +1,23 @@
-﻿@using UnidadResidencialProject.Models
+@using UnidadResidencialProject.Models
 @using UnidadResidencialProject.Services
+@using System.Text
 @inject ResidenteService ResidenteService
+@inject IJSRuntime JS
 
-<div class="admin-panel">
+<div class="admin-panel" id="tabla-usuarios">
     <div class="panel-header">
         <h2 class="panel-title">👥 Gestión de Usuarios</h2>
-        <button class="btn-primary" @onclick="@(() => _mostrarForm = true)">
-            + Nuevo Usuario
-        </button>
+        <div class="panel-actions">
+            <button class="btn-secondary excel-btn" @onclick="ExportarExcel" style="background:#107c41; color:white; border:none; padding:8px 12px; border-radius:4px; margin-right: 8px; cursor:pointer;">
+                📊 Excel
+            </button>
+            <button class="btn-secondary pdf-btn" @onclick="ExportarPDF" style="background:#d83b01; color:white; border:none; padding:8px 12px; border-radius:4px; margin-right: 8px; cursor:pointer;">
+                📄 PDF
+            </button>
+            <button class="btn-primary" @onclick="@(() => _mostrarForm = true)">
+                + Nuevo Usuario
+            </button>
+        </div>
     </div>
 
     @if (_error != null)
@@ -25,7 +35,7 @@
                     <th>Email</th>
                     <th>Rol</th>
                     <th>Estado</th>
-                    <th>Acción</th>
+                    <th data-html2canvas-ignore>Acción</th>
                 </tr>
             </thead>
             <tbody>
@@ -42,7 +52,7 @@
                                 @(u.Activo ? "Activo" : "Inactivo")
                             </span>
                         </td>
-                        <td>
+                        <td data-html2canvas-ignore>
                             <button class="btn-toggle @(u.Activo ? "desactivar" : "activar")"
                                     @onclick="@(() => ToggleUsuario(u))">
                                 @(u.Activo ? "Desactivar" : "Activar")
@@ -57,6 +67,7 @@
 
 @if (_mostrarForm)
 {
+    @* Formulario modal... *@
     <div class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -160,5 +171,25 @@
         var (ok, error) = await ResidenteService.CrearUsuarioAsync(dto);
         if (ok) { _mostrarForm = false; await CargarUsuarios(); await OnRecargar.InvokeAsync(); }
         else _error = error;
+    }
+
+    private async Task ExportarExcel()
+    {
+        var csv = new StringBuilder();
+        csv.AppendLine("ID,Nombre,Documento,Email,Telefono,Rol,Estado");
+        foreach(var u in _usuarios)
+        {
+            var rol = u.Rol?.Nombre ?? "Sin rol";
+            var estado = u.Activo ? "Activo" : "Inactivo";
+            csv.AppendLine($"{u.UsuarioId},{u.Nombre},{u.Documento},{u.Email},{u.Telefono},{rol},{estado}");
+        }
+        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+        var base64 = Convert.ToBase64String(bytes);
+        await JS.InvokeVoidAsync("descargarArchivo", "Reporte_Usuarios.csv", base64);
+    }
+
+    private async Task ExportarPDF()
+    {
+        await JS.InvokeVoidAsync("exportarPdf", "tabla-usuarios", "Reporte_Usuarios.pdf");
     }
 }

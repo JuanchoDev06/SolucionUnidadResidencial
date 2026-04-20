@@ -18,7 +18,7 @@ builder.Services.AddScoped<ParqueaderoService>(); // Re-add if it was here, I se
 builder.Services.AddScoped<MantenimientoService>();
 builder.Services.AddScoped<MensajeriaService>();
 builder.Services.AddScoped<ReservaService>();
-
+builder.Services.AddScoped<AdminService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
