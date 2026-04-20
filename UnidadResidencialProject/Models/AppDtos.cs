@@ -77,14 +77,18 @@ namespace UnidadResidencialProject.Models
     {
         public int IngresoId { get; set; }
         public string Tipo { get; set; } = "";
+        public string TipoIngreso => Tipo; // Alias para el Dashboard
         public string NombrePersona { get; set; } = "";
         public string Documento { get; set; } = "";
         public DateTime FechaHoraIngreso { get; set; }
+        public DateTime FechaHoraEntrada => FechaHoraIngreso; // Alias para el Dashboard
         public DateTime? FechaHoraSalida { get; set; }
         public int UsuarioId { get; set; }
         public int? UnidadId { get; set; }
         public UsuarioDto? Vigilante { get; set; }
         public ApartamentoDto? Unidad { get; set; }
+        public UsuarioDto? Visitante { get; set; } // Nuevo: Para el Dashboard
+        public UsuarioDto? Usuario => Vigilante; // Alias para el Dashboard
     }
 
     public class IngresoCreateDto
@@ -103,7 +107,8 @@ namespace UnidadResidencialProject.Models
     {
         public int ParqueaderoId { get; set; }
         public string Tipo { get; set; } = "";
-        public string Numero { get; set; } = ""; // ← cambiar int por string
+        public string Numero { get; set; } = "";
+        public string Estado { get; set; } = "Disponible"; // Nuevo: Para el Dashboard
         public int? UnidadId { get; set; }
         public ApartamentoDto? Unidad { get; set; }
     }
@@ -128,7 +133,33 @@ namespace UnidadResidencialProject.Models
         public int? IngresoId { get; set; }
     }
 
-    // ── Mantenimiento ───────────────────────────────────────
+    // ── Mantenimiento ─────────────────────────────────────
+    public class MantenimientoDto
+    {
+        public int MantenimientoId { get; set; }
+        public int TipoMantenimientoId { get; set; }
+        public DateTime Fecha { get; set; }
+        public DateTime FechaReporte => Fecha; // Alias para el Dashboard
+        public string? Proveedor { get; set; }
+        public string? Descripcion { get; set; }
+        public decimal? Costo { get; set; }
+        public string Prioridad { get; set; } = "Normal"; // Nuevo: Para el Dashboard
+        public int? ZonaComunId { get; set; }
+        public string? Estado { get; set; }
+        public TipoMantenimientoDto? TipoMantenimiento { get; set; }
+        public ZonaComunDto? ZonaComun { get; set; }
+    }
+
+    public class MantenimientoCreateDto
+    {
+        public int TipoMantenimientoId { get; set; }
+        public DateTime Fecha { get; set; } = DateTime.Today;
+        public string? Proveedor { get; set; }
+        public string? Descripcion { get; set; }
+        public decimal? Costo { get; set; }
+        public int? ZonaComunId { get; set; }
+    }
+
     public class TipoMantenimientoDto
     {
         public int TipoMantenimientoId { get; set; }
@@ -143,41 +174,23 @@ namespace UnidadResidencialProject.Models
         public decimal? ValorHora { get; set; }
     }
 
-    public class MantenimientoDto
-    {
-        public int MantenimientoId { get; set; }
-        public int TipoMantenimientoId { get; set; }
-        public DateTime Fecha { get; set; }
-        public string? Proveedor { get; set; }
-        public string? Descripcion { get; set; }
-        public decimal? Costo { get; set; }
-        public int? ZonaComunId { get; set; }
-        public string? Estado { get; set; } = "Pendiente";
-        public TipoMantenimientoDto? TipoMantenimiento { get; set; }
-        public ZonaComunDto? ZonaComun { get; set; }
-    }
-
-    public class MantenimientoCreateDto
-    {
-        public int TipoMantenimientoId { get; set; }
-        public DateTime Fecha { get; set; } = DateTime.Now;
-        public string? Proveedor { get; set; }
-        public string? Descripcion { get; set; }
-        public decimal? Costo { get; set; }
-        public int? ZonaComunId { get; set; }
-    }
-
     // ── Mensajería ──────────────────────────────────────────
     public class MensajeriaDto
     {
         public int MensajeriaId { get; set; }
         public string? Empresa { get; set; }
+        public string? EmpresaTransportadora => Empresa; // Alias
         public string? Guia { get; set; }
         public DateTime FechaRecepcion { get; set; }
+        public DateTime FechaRecibido => FechaRecepcion; // Alias
         public DateTime? FechaEntrega { get; set; }
         public int UnidadId { get; set; }
         public int UsuarioId { get; set; }
+        public string Estado { get; set; } = "Pendiente"; // Nuevo
+        public string? Destinatario { get; set; } // Nuevo
         public ApartamentoDto? Unidad { get; set; }
+        public ApartamentoDto? Apartamento => Unidad; // Alias
+        public UsuarioDto? Usuario { get; set; } // Nuevo (Destinatario)
         public UsuarioDto? Vigilante { get; set; }
     }
 
