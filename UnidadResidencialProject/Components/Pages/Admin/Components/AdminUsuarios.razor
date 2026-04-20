@@ -4,17 +4,17 @@
 @inject ResidenteService ResidenteService
 @inject IJSRuntime JS
 
-<div class="admin-panel" id="tabla-usuarios">
+<div class="admin-panel">
     <div class="panel-header">
         <h2 class="panel-title">👥 Gestión de Usuarios</h2>
         <div class="panel-actions">
-            <button class="btn-secondary excel-btn" @onclick="ExportarExcel" style="background:#107c41; color:white; border:none; padding:8px 12px; border-radius:4px; margin-right: 8px; cursor:pointer;">
+            <button class="btn-secondary excel-btn" @onclick="ExportarExcel" style="background:#107c41; color:white; border:none; padding:8px 12px; border-radius:4px; margin-right: 8px; cursor:pointer;" data-html2canvas-ignore>
                 📊 Excel
             </button>
-            <button class="btn-secondary pdf-btn" @onclick="ExportarPDF" style="background:#d83b01; color:white; border:none; padding:8px 12px; border-radius:4px; margin-right: 8px; cursor:pointer;">
+            <button class="btn-secondary pdf-btn" @onclick="ExportarPDF" style="background:#d83b01; color:white; border:none; padding:8px 12px; border-radius:4px; margin-right: 8px; cursor:pointer;" data-html2canvas-ignore>
                 📄 PDF
             </button>
-            <button class="btn-primary" @onclick="@(() => _mostrarForm = true)">
+            <button class="btn-primary" @onclick="@(() => _mostrarForm = true)" data-html2canvas-ignore>
                 + Nuevo Usuario
             </button>
         </div>
@@ -25,7 +25,7 @@
         <div style="color: #DC2626; margin-bottom: 1rem;">@_error</div>
     }
 
-    <div class="tabla-wrap">
+    <div class="tabla-wrap" id="tabla-usuarios">
         <table class="admin-table">
             <thead>
                 <tr>

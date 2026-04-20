@@ -4,7 +4,7 @@
 @inject AdminService AdminService
 @inject IJSRuntime JS
 
-<div class="admin-panel" id="tabla-torres">
+<div class="admin-panel">
     <div class="panel-header">
         <h2 class="panel-title">🏢 Torres & Apartamentos</h2>
         <div class="panel-actions">
@@ -25,7 +25,7 @@
         <div style="color: #DC2626; margin-bottom: 1rem;">@_error</div>
     }
 
-    <div class="torres-lista">
+    <div class="torres-lista" id="tabla-torres">
         @foreach (var t in Torres)
         {
             var aptosTorre = Apartamentos.Where(a => a.TorreId == t.TorreId).ToList();
