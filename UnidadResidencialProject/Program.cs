@@ -19,6 +19,7 @@ builder.Services.AddScoped<MantenimientoService>();
 builder.Services.AddScoped<MensajeriaService>();
 builder.Services.AddScoped<ReservaService>();
 builder.Services.AddScoped<AdminService>();
+builder.Services.AddScoped<DashboardService>();
 
 var app = builder.Build();
 
