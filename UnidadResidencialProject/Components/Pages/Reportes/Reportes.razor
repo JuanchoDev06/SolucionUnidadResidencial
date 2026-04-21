@@ -1,0 +1,589 @@
+﻿@page "/reportes"
+@using UnidadResidencialProject.Models
+@using UnidadResidencialProject.Services
+@inject ReporteService ReporteService
+@inject AuthService AuthService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@using UnidadResidencialProject.Components.Pages.Dashboard.Components
+
+<PageTitle>Reportes — ResidenciaPro</PageTitle>
+
+<div class="crm-shell">
+    <Sidebar />
+    <main class="main-content">
+
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Módulo de Reportes</h1>
+                <span class="page-breadcrumb">Generación de reportes PDF y Excel — Solo Administradores</span>
+            </div>
+        </header>
+
+        <div class="page-body">
+
+            @if (_error != null)
+            {
+                <div class="error-banner">⚠️ @_error</div>
+            }
+
+            <!-- Tabs -->
+            <div class="tabs-bar">
+                <button class="tab-btn @(_tab == "pdf" ? "active" : "")"
+                        @onclick="@(() => _tab = "pdf")">
+                    📄 Reportes PDF
+                </button>
+                <button class="tab-btn @(_tab == "excel" ? "active" : "")"
+                        @onclick="@(() => _tab = "excel")">
+                    📊 Reportes Excel
+                </button>
+            </div>
+
+            @if (_tab == "pdf")
+            {
+                <!-- ══════════ PDF ══════════ -->
+                <div class="reportes-grid">
+
+                    <!-- 1. Ingresos -->
+                    <div class="reporte-card">
+                        <div class="reporte-header">
+                            <span class="reporte-icon">⇌</span>
+                            <div>
+                                <h3 class="reporte-title">Reporte de Ingresos</h3>
+                                <p class="reporte-desc">Entradas y salidas filtradas por fecha y tipo</p>
+                            </div>
+                        </div>
+                        <div class="reporte-filtros">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Fecha Inicio</label>
+                                    <input class="form-control" type="date"
+                                           @bind="_ingFechaInicio" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Fecha Fin</label>
+                                    <input class="form-control" type="date"
+                                           @bind="_ingFechaFin" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tipo</label>
+                                <select class="form-control" @bind="_ingTipo">
+                                    <option value="">Todos</option>
+                                    <option value="Residente">Residente</option>
+                                    <option value="Visitante">Visitante</option>
+                                    <option value="Proveedor">Proveedor</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn-descargar" @onclick="DescargarIngresosPdf"
+                                disabled="@_cargandoIngresosPdf">
+                            @if (_cargandoIngresosPdf)
+                            {
+                                <span>⏳ Generando...</span>
+                            }
+                            else
+                            {
+                                <span>⬇ Descargar PDF</span>
+                            }
+                        </button>
+                    </div>
+
+                    <!-- 2. Residentes -->
+                    <div class="reporte-card">
+                        <div class="reporte-header">
+                            <span class="reporte-icon">◈</span>
+                            <div>
+                                <h3 class="reporte-title">Reporte de Residentes</h3>
+                                <p class="reporte-desc">Directorio filtrado por torre y tipo</p>
+                            </div>
+                        </div>
+                        <div class="reporte-filtros">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Torre</label>
+                                    <select class="form-control" @bind="_resTorreId">
+                                        <option value="">Todas</option>
+                                        @foreach (var t in _torres)
+                                        {
+                                            <option value="@t.TorreId">@t.Nombre</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Tipo Residente</label>
+                                    <select class="form-control" @bind="_resTipo">
+                                        <option value="">Todos</option>
+                                        <option value="Propietario">Propietario</option>
+                                        <option value="Inquilino">Inquilino</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn-descargar" @onclick="DescargarResidentesPdf"
+                                disabled="@_cargandoResidentesPdf">
+                            @if (_cargandoResidentesPdf)
+                            {
+                                <span>⏳ Generando...</span>
+                            }
+                            else
+                            {
+                                <span>⬇ Descargar PDF</span>
+                            }
+                        </button>
+                    </div>
+
+                    <!-- 3. Mantenimientos -->
+                    <div class="reporte-card">
+                        <div class="reporte-header">
+                            <span class="reporte-icon">⚙</span>
+                            <div>
+                                <h3 class="reporte-title">Reporte de Mantenimientos</h3>
+                                <p class="reporte-desc">Historial filtrado por estado y tipo</p>
+                            </div>
+                        </div>
+                        <div class="reporte-filtros">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Estado</label>
+                                    <select class="form-control" @bind="_mantEstado">
+                                        <option value="">Todos</option>
+                                        <option value="Pendiente">Pendiente</option>
+                                        <option value="En curso">En curso</option>
+                                        <option value="Completado">Completado</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Tipo</label>
+                                    <select class="form-control" @bind="_mantTipoId">
+                                        <option value="">Todos</option>
+                                        @foreach (var t in _tiposMantenimiento)
+                                        {
+                                            <option value="@t.TipoMantenimientoId">@t.Nombre</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn-descargar" @onclick="DescargarMantenimientosPdf"
+                                disabled="@_cargandoMantenimientosPdf">
+                            @if (_cargandoMantenimientosPdf)
+                            {
+                                <span>⏳ Generando...</span>
+                            }
+                            else
+                            {
+                                <span>⬇ Descargar PDF</span>
+                            }
+                        </button>
+                    </div>
+
+                    <!-- 4. Reservas -->
+                    <div class="reporte-card">
+                        <div class="reporte-header">
+                            <span class="reporte-icon">◷</span>
+                            <div>
+                                <h3 class="reporte-title">Reporte de Reservas</h3>
+                                <p class="reporte-desc">Listado filtrado por zona y fechas</p>
+                            </div>
+                        </div>
+                        <div class="reporte-filtros">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Fecha Inicio</label>
+                                    <input class="form-control" type="date"
+                                           @bind="_resFechaInicio" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Fecha Fin</label>
+                                    <input class="form-control" type="date"
+                                           @bind="_resFechaFin" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Zona Común</label>
+                                <select class="form-control" @bind="_resZonaId">
+                                    <option value="">Todas</option>
+                                    @foreach (var z in _zonas)
+                                    {
+                                        <option value="@z.ZonaComunId">@z.Nombre</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn-descargar" @onclick="DescargarReservasPdf"
+                                disabled="@_cargandoReservasPdf">
+                            @if (_cargandoReservasPdf)
+                            {
+                                <span>⏳ Generando...</span>
+                            }
+                            else
+                            {
+                                <span>⬇ Descargar PDF</span>
+                            }
+                        </button>
+                    </div>
+
+                    <!-- 5. Visitantes Parqueadero -->
+                    <div class="reporte-card">
+                        <div class="reporte-header">
+                            <span class="reporte-icon">⬡</span>
+                            <div>
+                                <h3 class="reporte-title">Visitantes Parqueadero</h3>
+                                <p class="reporte-desc">Historial de vehículos visitantes</p>
+                            </div>
+                        </div>
+                        <div class="reporte-filtros">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Fecha Inicio</label>
+                                    <input class="form-control" type="date"
+                                           @bind="_visFechaInicio" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Fecha Fin</label>
+                                    <input class="form-control" type="date"
+                                           @bind="_visFechaFin" />
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn-descargar" @onclick="DescargarVisitantesPdf"
+                                disabled="@_cargandoVisitantesPdf">
+                            @if (_cargandoVisitantesPdf)
+                            {
+                                <span>⏳ Generando...</span>
+                            }
+                            else
+                            {
+                                <span>⬇ Descargar PDF</span>
+                            }
+                        </button>
+                    </div>
+
+                </div>
+            }
+            else
+            {
+                <!-- ══════════ EXCEL ══════════ -->
+                <div class="reportes-grid">
+
+                    <!-- 1. Ocupación Parqueadero -->
+                    <div class="reporte-card">
+                        <div class="reporte-header">
+                            <span class="reporte-icon">⬡</span>
+                            <div>
+                                <h3 class="reporte-title">Ocupación Parqueadero</h3>
+                                <p class="reporte-desc">Cupos asignados vs disponibles por tipo</p>
+                            </div>
+                        </div>
+                        <div class="reporte-filtros">
+                            <p class="reporte-nota">Sin filtros adicionales — incluye todos los cupos</p>
+                        </div>
+                        <button class="btn-descargar excel" @onclick="DescargarOcupacionExcel"
+                                disabled="@_cargandoOcupacionExcel">
+                            @if (_cargandoOcupacionExcel)
+                            {
+                                <span>⏳ Generando...</span>
+                            }
+                            else
+                            {
+                                <span>⬇ Descargar Excel</span>
+                            }
+                        </button>
+                    </div>
+
+                    <!-- 2. Mensajería -->
+                    <div class="reporte-card">
+                        <div class="reporte-header">
+                            <span class="reporte-icon">◻</span>
+                            <div>
+                                <h3 class="reporte-title">Reporte Mensajería</h3>
+                                <p class="reporte-desc">Paquetes recibidos y entregados</p>
+                            </div>
+                        </div>
+                        <div class="reporte-filtros">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Fecha Inicio</label>
+                                    <input class="form-control" type="date"
+                                           @bind="_msgFechaInicio" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Fecha Fin</label>
+                                    <input class="form-control" type="date"
+                                           @bind="_msgFechaFin" />
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn-descargar excel" @onclick="DescargarMensajeriaExcel"
+                                disabled="@_cargandoMensajeriaExcel">
+                            @if (_cargandoMensajeriaExcel)
+                            {
+                                <span>⏳ Generando...</span>
+                            }
+                            else
+                            {
+                                <span>⬇ Descargar Excel</span>
+                            }
+                        </button>
+                    </div>
+
+                    <!-- 3. Ingresos por Tipo -->
+                    <div class="reporte-card">
+                        <div class="reporte-header">
+                            <span class="reporte-icon">⇌</span>
+                            <div>
+                                <h3 class="reporte-title">Ingresos por Tipo</h3>
+                                <p class="reporte-desc">Estadísticas agrupadas por tipo de ingreso</p>
+                            </div>
+                        </div>
+                        <div class="reporte-filtros">
+                            <p class="reporte-nota">Sin filtros adicionales — incluye todos los ingresos</p>
+                        </div>
+                        <button class="btn-descargar excel" @onclick="DescargarIngresosTipoExcel"
+                                disabled="@_cargandoIngresosTipoExcel">
+                            @if (_cargandoIngresosTipoExcel)
+                            {
+                                <span>⏳ Generando...</span>
+                            }
+                            else
+                            {
+                                <span>⬇ Descargar Excel</span>
+                            }
+                        </button>
+                    </div>
+
+                    <!-- 4. Zonas Comunes -->
+                    <div class="reporte-card">
+                        <div class="reporte-header">
+                            <span class="reporte-icon">🏊</span>
+                            <div>
+                                <h3 class="reporte-title">Zonas Comunes</h3>
+                                <p class="reporte-desc">Ingresos por reservas por zona y mes</p>
+                            </div>
+                        </div>
+                        <div class="reporte-filtros">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Mes</label>
+                                    <select class="form-control" @bind="_zonaMes">
+                                        <option value="">Todos</option>
+                                        @foreach (var m in Enumerable.Range(1, 12))
+                                        {
+                                            var nombreMes = new DateTime(2024, m, 1).ToString("MMMM",
+                                            new System.Globalization.CultureInfo("es-CO"));
+                                            <option value="@m">@nombreMes</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Zona</label>
+                                    <select class="form-control" @bind="_zonaId">
+                                        <option value="">Todas</option>
+                                        @foreach (var z in _zonas)
+                                        {
+                                            <option value="@z.ZonaComunId">@z.Nombre</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn-descargar excel" @onclick="DescargarZonasComunesExcel"
+                                disabled="@_cargandoZonasExcel">
+                            @if (_cargandoZonasExcel)
+                            {
+                                <span>⏳ Generando...</span>
+                            }
+                            else
+                            {
+                                <span>⬇ Descargar Excel</span>
+                            }
+                        </button>
+                    </div>
+
+                    <!-- 5. Usuarios por Rol -->
+                    <div class="reporte-card">
+                        <div class="reporte-header">
+                            <span class="reporte-icon">👥</span>
+                            <div>
+                                <h3 class="reporte-title">Usuarios por Rol</h3>
+                                <p class="reporte-desc">Listado agrupado por rol y estado</p>
+                            </div>
+                        </div>
+                        <div class="reporte-filtros">
+                            <p class="reporte-nota">Sin filtros adicionales — incluye todos los usuarios</p>
+                        </div>
+                        <button class="btn-descargar excel" @onclick="DescargarUsuariosRolExcel"
+                                disabled="@_cargandoUsuariosExcel">
+                            @if (_cargandoUsuariosExcel)
+                            {
+                                <span>⏳ Generando...</span>
+                            }
+                            else
+                            {
+                                <span>⬇ Descargar Excel</span>
+                            }
+                        </button>
+                    </div>
+
+                </div>
+            }
+        </div>
+    </main>
+</div>
+
+@code {
+    private bool _inicializado = false;
+    private string? _error;
+    private string _tab = "pdf";
+
+    // ── Datos para filtros ────────────────────────────────
+    private List<TorreDto> _torres = new();
+    private List<ZonaComunDto> _zonas = new();
+    private List<TipoMantenimientoDto> _tiposMantenimiento = new();
+
+    // ── Filtros PDF ───────────────────────────────────────
+    private DateTime _ingFechaInicio = DateTime.Today.AddMonths(-1);
+    private DateTime _ingFechaFin = DateTime.Today;
+    private string _ingTipo = "";
+    private string _resTipo = "";
+    private string _resTorreId = "";
+    private string _mantEstado = "";
+    private string _mantTipoId = "";
+    private DateTime _resFechaInicio = DateTime.Today.AddMonths(-1);
+    private DateTime _resFechaFin = DateTime.Today;
+    private string _resZonaId = "";
+    private DateTime _visFechaInicio = DateTime.Today.AddMonths(-1);
+    private DateTime _visFechaFin = DateTime.Today;
+
+    // ── Filtros Excel ─────────────────────────────────────
+    private DateTime _msgFechaInicio = DateTime.Today.AddMonths(-1);
+    private DateTime _msgFechaFin = DateTime.Today;
+    private string _zonaMes = "";
+    private string _zonaId = "";
+
+    // ── Estados de carga ──────────────────────────────────
+    private bool _cargandoIngresosPdf = false;
+    private bool _cargandoResidentesPdf = false;
+    private bool _cargandoMantenimientosPdf = false;
+    private bool _cargandoReservasPdf = false;
+    private bool _cargandoVisitantesPdf = false;
+    private bool _cargandoOcupacionExcel = false;
+    private bool _cargandoMensajeriaExcel = false;
+    private bool _cargandoIngresosTipoExcel = false;
+    private bool _cargandoZonasExcel = false;
+    private bool _cargandoUsuariosExcel = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _inicializado) return;
+        _inicializado = true;
+
+        var rol = await AuthService.GetRolAsync();
+        if (rol != "Administrador")
+        {
+            Nav.NavigateTo("/dashboard");
+            return;
+        }
+
+        await CargarFiltros();
+        StateHasChanged();
+    }
+
+    private async Task CargarFiltros()
+    {
+        try
+        {
+            _torres = await new AdminService(
+                new HttpClient { BaseAddress = _http.BaseAddress }, AuthService).GetTorresAsync();
+            _zonas = await new AdminService(
+                new HttpClient { BaseAddress = _http.BaseAddress }, AuthService).GetZonasComunesAsync();
+            _tiposMantenimiento = await new AdminService(
+                new HttpClient { BaseAddress = _http.BaseAddress }, AuthService).GetTiposMantenimientoAsync();
+        }
+        catch { }
+    }
+
+    private async Task Descargar(string nombre, Func<Task<byte[]>> generador,
+        Action<bool> setLoading)
+    {
+        _error = null;
+        setLoading(true);
+        try
+        {
+            var bytes = await generador();
+            await JS.InvokeVoidAsync("descargarArchivo", nombre, Convert.ToBase64String(bytes));
+        }
+        catch (Exception ex)
+        {
+            _error = $"Error al generar {nombre}: {ex.Message}";
+        }
+        finally
+        {
+            setLoading(false);
+        }
+    }
+
+    // ── PDF ───────────────────────────────────────────────
+    private Task DescargarIngresosPdf() => Descargar(
+        $"Ingresos_{DateTime.Today:yyyyMMdd}.pdf",
+        () => ReporteService.GetReporteIngresosPdfAsync(_ingFechaInicio, _ingFechaFin, _ingTipo == "" ? null : _ingTipo),
+        v => _cargandoIngresosPdf = v);
+
+    private Task DescargarResidentesPdf() => Descargar(
+        $"Residentes_{DateTime.Today:yyyyMMdd}.pdf",
+        () => ReporteService.GetReporteResidentesPdfAsync(
+            string.IsNullOrEmpty(_resTorreId) ? null : int.Parse(_resTorreId),
+            _resTipo == "" ? null : _resTipo),
+        v => _cargandoResidentesPdf = v);
+
+    private Task DescargarMantenimientosPdf() => Descargar(
+        $"Mantenimientos_{DateTime.Today:yyyyMMdd}.pdf",
+        () => ReporteService.GetReporteMantenimientosPdfAsync(
+            _mantEstado == "" ? null : _mantEstado,
+            string.IsNullOrEmpty(_mantTipoId) ? null : int.Parse(_mantTipoId)),
+        v => _cargandoMantenimientosPdf = v);
+
+    private Task DescargarReservasPdf() => Descargar(
+        $"Reservas_{DateTime.Today:yyyyMMdd}.pdf",
+        () => ReporteService.GetReporteReservasPdfAsync(
+            string.IsNullOrEmpty(_resZonaId) ? null : int.Parse(_resZonaId),
+            _resFechaInicio, _resFechaFin),
+        v => _cargandoReservasPdf = v);
+
+    private Task DescargarVisitantesPdf() => Descargar(
+        $"Visitantes_Parqueadero_{DateTime.Today:yyyyMMdd}.pdf",
+        () => ReporteService.GetReporteVisitantesParqueaderoPdfAsync(_visFechaInicio, _visFechaFin),
+        v => _cargandoVisitantesPdf = v);
+
+    // ── Excel ─────────────────────────────────────────────
+    private Task DescargarOcupacionExcel() => Descargar(
+        $"Ocupacion_Parqueadero_{DateTime.Today:yyyyMMdd}.xlsx",
+        () => ReporteService.GetReporteOcupacionParqueaderoExcelAsync(),
+        v => _cargandoOcupacionExcel = v);
+
+    private Task DescargarMensajeriaExcel() => Descargar(
+        $"Mensajeria_{DateTime.Today:yyyyMMdd}.xlsx",
+        () => ReporteService.GetReporteMensajeriaExcelAsync(null, _msgFechaInicio, _msgFechaFin),
+        v => _cargandoMensajeriaExcel = v);
+
+    private Task DescargarIngresosTipoExcel() => Descargar(
+        $"Ingresos_Por_Tipo_{DateTime.Today:yyyyMMdd}.xlsx",
+        () => ReporteService.GetReporteIngresosPorTipoExcelAsync(),
+        v => _cargandoIngresosTipoExcel = v);
+
+    private Task DescargarZonasComunesExcel() => Descargar(
+        $"Zonas_Comunes_{DateTime.Today:yyyyMMdd}.xlsx",
+        () => ReporteService.GetReporteZonasComunesExcelAsync(
+            string.IsNullOrEmpty(_zonaId) ? null : int.Parse(_zonaId),
+            string.IsNullOrEmpty(_zonaMes) ? null : int.Parse(_zonaMes),
+            string.IsNullOrEmpty(_zonaMes) ? null : DateTime.Today.Year),
+        v => _cargandoZonasExcel = v);
+
+    private Task DescargarUsuariosRolExcel() => Descargar(
+        $"Usuarios_Por_Rol_{DateTime.Today:yyyyMMdd}.xlsx",
+        () => ReporteService.GetReporteUsuariosPorRolExcelAsync(),
+        v => _cargandoUsuariosExcel = v);
+
+    [Inject] private HttpClient _http { get; set; } = default!;
+}

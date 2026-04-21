@@ -2,6 +2,8 @@
 @using UnidadResidencialProject.Models
 @using UnidadResidencialProject.Services
 @inject MensajeriaService MensajeriaService
+@inject AuthService AuthService
+@inject NavigationManager Nav
 
 <PageTitle>Mensajería — Conjunto Residencial</PageTitle>
 
@@ -61,41 +63,16 @@
     private bool _mostrarFormulario = false;
     private string _filtroEstado = "Todos";
     private string _busqueda = "";
-
     private bool _cargando = true;
+    private bool _inicializado = false;
     private string? _error;
+    private string _rol = "";
 
     private List<MensajeriaDto> _paquetes = new();
     private List<ApartamentoDto> _apartamentos = new();
 
-    protected override async Task OnInitializedAsync()
-    {
-        await CargarDatos();
-    }
-
-    private async Task CargarDatos()
-    {
-        try
-        {
-            _cargando = true;
-            _error = null;
-
-            _paquetes = await MensajeriaService.GetMensajeriasAsync();
-            _apartamentos = await MensajeriaService.GetApartamentosAsync();
-        }
-        catch (Exception ex)
-        {
-            _error = $"Error al cargar datos: {ex.Message}";
-        }
-        finally
-        {
-            _cargando = false;
-        }
-    }
-
     private string GetEstado(MensajeriaDto p) => p.FechaEntrega == null ? "Pendiente" : "Entregado";
 
-    // ── Computed ──────────────────────────────────────────
     private List<MensajeriaDto> PaquetesFiltrados =>
         _paquetes
             .Where(p => _filtroEstado == "Todos" || GetEstado(p) == _filtroEstado)
@@ -105,7 +82,39 @@
                         p.Unidad?.Numero.Contains(_busqueda, StringComparison.OrdinalIgnoreCase) == true)
             .ToList();
 
-    // ── Acciones ──────────────────────────────────────────
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _inicializado) return;
+        _inicializado = true;
+
+        _rol = await AuthService.GetRolAsync();
+        await CargarDatos();
+        StateHasChanged();
+    }
+
+    private async Task CargarDatos()
+    {
+        try
+        {
+            _cargando = true;
+            _error = null;
+            _paquetes = await MensajeriaService.GetMensajeriasAsync();
+            _apartamentos = await MensajeriaService.GetApartamentosAsync();
+        }
+        catch (Exception ex)
+        {
+            // Si es 403 no mostrar error — simplemente lista vacía
+            if (ex.Message.Contains("403"))
+                _paquetes = new();
+            else
+                _error = $"Error al cargar datos: {ex.Message}";
+        }
+        finally
+        {
+            _cargando = false;
+        }
+    }
+
     private async Task MarcarEntregado(int id)
     {
         var idx = _paquetes.FindIndex(p => p.MensajeriaId == id);
