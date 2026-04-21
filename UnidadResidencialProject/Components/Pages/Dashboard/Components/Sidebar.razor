@@ -20,12 +20,17 @@
         </div>
     </div>
 
+
     <nav class="sidebar-nav">
+
+        @if (_esAdmin || _esVigilante)
+        {
         <div class="nav-section-label">General</div>
-        <a class="nav-item" href="/dashboard">
-            <span class="nav-icon">⊞</span>
-            <span>Dashboard</span>
-        </a>
+            <a class="nav-item" href="/dashboard">
+                <span class="nav-icon">⊞</span>
+                <span>Dashboard</span>
+            </a>
+        }
 
         @if (_esAdmin)
         {
@@ -77,6 +82,10 @@
             <a class="nav-item" href="/admin">
                 <span class="nav-icon">🛡</span>
                 <span>Administración</span>
+            </a>
+            <a class="nav-item" href="/reportes">
+                <span class="nav-icon">📊</span>
+                <span>Reportes</span>
             </a>
         }
 
