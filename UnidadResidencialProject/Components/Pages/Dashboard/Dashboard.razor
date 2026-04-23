@@ -2,14 +2,14 @@
 @using UnidadResidencialProject.Models
 @using UnidadResidencialProject.Services
 @using UnidadResidencialProject.Components.Pages.Dashboard.Components
-@using UnidadResidencialProject.Services
-@using UnidadResidencialProject.Models
 @inject ResidenteService ResidenteService
 @inject IngresoService IngresoService
 @inject ParqueaderoService ParqueaderoService
 @inject MensajeriaService MensajeriaService
 @inject ReservaService ReservaService
 @inject MantenimientoService MantenimientoService
+@inject AuthService AuthService
+@inject NavigationManager Nav
 
 <PageTitle>Dashboard — Conjunto Residencial</PageTitle>
 
@@ -297,6 +297,11 @@
     {
         if (firstRender)
         {
+            if (!await AuthService.IsAuthenticatedAsync())
+            {
+                Nav.NavigateTo("/");
+                return;
+            }
             await CargarDatosReales();
         }
     }

@@ -33,7 +33,7 @@ namespace UnidadResidencialProject.Services
                 if (string.IsNullOrEmpty(token)) return false;
 
                 // Guardar token en localStorage
-                await _js.InvokeVoidAsync("localStorage.setItem", "jwt_token", token);
+                await _js.InvokeVoidAsync("sessionStorage.setItem", "jwt_token", token);
                 return true;
             }
             catch
@@ -46,7 +46,7 @@ namespace UnidadResidencialProject.Services
         {
             try
             {
-                return await _js.InvokeAsync<string>("localStorage.getItem", "jwt_token");
+                return await _js.InvokeAsync<string>("sessionStorage.getItem", "jwt_token");
             }
             catch
             {
@@ -69,7 +69,7 @@ namespace UnidadResidencialProject.Services
 
         public async Task LogoutAsync()
         {
-            await _js.InvokeVoidAsync("localStorage.removeItem", "jwt_token");
+            await _js.InvokeVoidAsync("sessionStorage.removeItem", "jwt_token");
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿@page "/Login"
+@page "/"
+@page "/Login"
 @inject AuthService AuthService
 @inject NavigationManager Nav
 
@@ -126,11 +127,15 @@
     private bool _errorVisible = false;
     private bool _mostrarPassword = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender) return;
+
         // Si ya tiene token válido redirige directo al dashboard
         if (await AuthService.IsAuthenticatedAsync())
+        {
             Nav.NavigateTo("/dashboard");
+        }
     }
 
     private async Task HandleLogin()
