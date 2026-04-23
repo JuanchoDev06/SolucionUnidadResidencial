@@ -61,7 +61,7 @@
         <div class="modal-box">
             <div class="modal-header">
                 <h2 class="modal-title">Nuevo Usuario</h2>
-                <button class="modal-close" @onclick="@(() => _mostrarForm = false)">✕</button>
+                <button class="modal-close" @onclick="CerrarFormulario">✕</button>
             </div>
             <div class="modal-body">
                 <div class="form-row">
@@ -100,9 +100,50 @@
                         <input class="form-control" type="text" @bind="_password" placeholder="Contraseña" />
                     </div>
                 </div>
+
+                <!-- Separador -->
+                <div style="margin: 1.2rem 0 0.5rem; border-top: 1px solid var(--border, #2a2f3a); padding-top: 1rem;">
+                    <p style="font-size: 0.82rem; color: var(--text3, #888); margin: 0 0 0.75rem;">
+                        🏠 <strong>Asignación de apartamento</strong> — Opcional
+                    </p>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Torre</label>
+                        <select class="form-control" value="@_torreId" @onchange="OnTorreChanged">
+                            <option value="0">— Sin torre —</option>
+                            @foreach (var t in Torres)
+                            {
+                                <option value="@t.TorreId">@t.Nombre</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Apartamento</label>
+                        <select class="form-control" @bind="_unidadId" disabled="@(_torreId == 0)">
+                            <option value="0">— Sin apartamento —</option>
+                            @foreach (var a in ApartamentosFiltrados)
+                            {
+                                <option value="@a.UnidadId">@a.Numero</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                @if (_torreId > 0)
+                {
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Tipo de residente</label>
+                            <select class="form-control" @bind="_esPropietario">
+                                <option value="true">Propietario</option>
+                                <option value="false">Inquilino</option>
+                            </select>
+                        </div>
+                    </div>
+                }
             </div>
             <div class="modal-footer">
-                <button class="btn-cancel" @onclick="@(() => _mostrarForm = false)">Cancelar</button>
+                <button class="btn-cancel" @onclick="CerrarFormulario">Cancelar</button>
                 <button class="btn-save" @onclick="CrearUsuario">Crear Usuario</button>
             </div>
         </div>
@@ -111,22 +152,45 @@
 
 @code {
     [Parameter] public List<RolDto> Roles { get; set; } = new();
+    [Parameter] public List<TorreDto> Torres { get; set; } = new();
+    [Parameter] public List<ApartamentoDto> Apartamentos { get; set; } = new();
     [Parameter] public EventCallback OnRecargar { get; set; }
 
     private List<UsuarioDto> _usuarios = new();
     private bool _mostrarForm = false;
     private string? _error;
 
+    // Campos del formulario
     private string _nombre = "";
     private string _documento = "";
     private string _email = "";
     private string _telefono = "";
     private string _password = "";
     private int _rolId = 0;
+    private int _torreId = 0;
+    private int _unidadId = 0;
+    private bool _esPropietario = true;
+
+    private List<ApartamentoDto> ApartamentosFiltrados =>
+        _torreId > 0 ? Apartamentos.Where(a => a.TorreId == _torreId).ToList() : new();
 
     protected override async Task OnInitializedAsync()
     {
         await CargarUsuarios();
+    }
+
+    private void OnTorreChanged(ChangeEventArgs e)
+    {
+        _torreId = int.TryParse(e.Value?.ToString(), out var id) ? id : 0;
+        _unidadId = 0; // Resetear apartamento al cambiar torre
+    }
+
+    private void CerrarFormulario()
+    {
+        _mostrarForm = false;
+        _nombre = ""; _documento = ""; _email = ""; _telefono = "";
+        _password = ""; _rolId = 0; _torreId = 0; _unidadId = 0;
+        _esPropietario = true; _error = null;
     }
 
     private async Task CargarUsuarios()
@@ -146,6 +210,7 @@
     private async Task CrearUsuario()
     {
         if (_rolId <= 0 || string.IsNullOrWhiteSpace(_nombre)) return;
+
         var dto = new UsuarioCreateDto
         {
             Nombre = _nombre,
@@ -157,8 +222,36 @@
             Activo = true,
             FechaCreacion = DateTime.Now
         };
+
         var (ok, error) = await ResidenteService.CrearUsuarioAsync(dto);
-        if (ok) { _mostrarForm = false; await CargarUsuarios(); await OnRecargar.InvokeAsync(); }
-        else _error = error;
+        if (!ok) { _error = error; return; }
+
+        // Si se seleccionó un apartamento, asignarlo
+        if (_unidadId > 0)
+        {
+            // Obtener el usuario recién creado para obtener su ID
+            var usuarios = await ResidenteService.GetUsuariosAsync();
+            var nuevoUsuario = usuarios
+                .OrderByDescending(u => u.UsuarioId)
+                .FirstOrDefault(u => u.Email == _email || u.Nombre == _nombre);
+
+            if (nuevoUsuario != null)
+            {
+                var (okAsig, errorAsig) = await ResidenteService.AsignarApartamentoAsync(
+                    nuevoUsuario.UsuarioId, _unidadId, _esPropietario);
+
+                if (!okAsig)
+                {
+                    _error = $"Usuario creado, pero error al asignar apartamento: {errorAsig}";
+                    await CargarUsuarios();
+                    await OnRecargar.InvokeAsync();
+                    return;
+                }
+            }
+        }
+
+        CerrarFormulario();
+        await CargarUsuarios();
+        await OnRecargar.InvokeAsync();
     }
 }

@@ -51,6 +51,8 @@
                 @if (_tabActiva == "usuarios")
                 {
                     <AdminUsuarios Roles="@_roles"
+                                   Torres="@_torres"
+                                   Apartamentos="@_apartamentos"
                                    OnRecargar="@CargarDatos" />
                 }
                 else if (_tabActiva == "roles")
