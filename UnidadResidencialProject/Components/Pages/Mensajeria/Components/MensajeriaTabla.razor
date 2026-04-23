@@ -28,9 +28,9 @@
                         <td class="td-id">@p.MensajeriaId</td>
                         <td><span class="tipo-icon">@GetIcono(p)</span></td>
                         <td class="td-empresa">@CleanEmpresa(p.Empresa)</td>
-                        <td class="td-mono">@p.Guia</td>
-                        <td><span class="apto-tag">@(p.Unidad?.Torre?.Nombre) - Apto @p.Unidad?.Numero</span></td>
-                        <td class="td-nombre">N/A</td> <!-- Backend no tiene residente local -->
+                        <td class="td-mono">@GetGuiaLimpia(p.Guia)</td>
+                        <td class="td-mono">@(p.Unidad?.Torre?.Nombre) - Apto @p.Unidad?.Numero</td>
+                        <td class="td-nombre">@GetResidente(p.Guia)</td>
                         <td class="td-mono">@p.FechaRecepcion.ToString("d MMM h:mm tt")</td>
                         <td class="td-mono">@(p.FechaEntrega?.ToString("d MMM h:mm tt") ?? "—")</td>
                         <td>
@@ -63,6 +63,22 @@
     [Parameter] public EventCallback<int> OnMarcarEntregado { get; set; }
 
     private string GetEstado(MensajeriaDto p) => p.FechaEntrega == null ? "Pendiente" : "Entregado";
+
+    // Extrae el nombre del residente del campo Guia (formato: "Nombre||Codigo" o solo "Codigo")
+    private string GetResidente(string? guia)
+    {
+        if (string.IsNullOrEmpty(guia)) return "—";
+        var partes = guia.Split("||", 2);
+        return partes.Length == 2 ? partes[0] : "—";
+    }
+
+    // Extrae solo el código de guía limpio del campo Guia
+    private string GetGuiaLimpia(string? guia)
+    {
+        if (string.IsNullOrEmpty(guia)) return "—";
+        var partes = guia.Split("||", 2);
+        return partes.Length == 2 ? partes[1] : guia;
+    }
 
     // Extrae dinámicamente el icono basado en el prefijo guardado en la Empresa
     private string GetIcono(MensajeriaDto p)

@@ -79,7 +79,6 @@
     private int _unidadId = 0;
     private DateTime _fechaRecepcion = DateTime.Now;
     
-    // UI Only variables
     private string _residente = "";
     private string _tipo = "Paquete";
     private string _estado = "Pendiente";
@@ -92,10 +91,16 @@
 
         var tipoPrefix = $"[{_tipo}] ";
 
+        // El nombre del residente se embebe en la Guía con separador || para mostrarse en la tabla
+        // Formato: "NombreResidente||CodigoGuia" (ej: "María López||AMZ-7821934")
+        var guiaConResidente = string.IsNullOrWhiteSpace(_residente)
+            ? _guia
+            : $"{_residente}||{_guia}";
+
         var nuevo = new MensajeriaCreateDto
         {
             Empresa = tipoPrefix + _empresa,
-            Guia = _guia,
+            Guia = guiaConResidente,
             UnidadId = _unidadId,
             FechaRecepcion = _fechaRecepcion,
             UsuarioId = userId > 0 ? userId : 4 // Default a 4 si falla

@@ -2,8 +2,14 @@
 @using UnidadResidencialProject.Models
 @using UnidadResidencialProject.Services
 @using UnidadResidencialProject.Components.Pages.Dashboard.Components
-@inject DashboardService DashboardService
-@inject AuthService AuthService
+@using UnidadResidencialProject.Services
+@using UnidadResidencialProject.Models
+@inject ResidenteService ResidenteService
+@inject IngresoService IngresoService
+@inject ParqueaderoService ParqueaderoService
+@inject MensajeriaService MensajeriaService
+@inject ReservaService ReservaService
+@inject MantenimientoService MantenimientoService
 
 <PageTitle>Dashboard — Conjunto Residencial</PageTitle>
 
@@ -33,21 +39,25 @@
         @if (_cargando)
         {
             <div style="padding: 2rem; color: var(--text3); font-style: italic;">
-                Cargando datos del dashboard…
+                Cargando datos en tiempo real...
+            </div>
+        }
+        else if (_error != null)
+        {
+            <div style="padding: 2rem; color: #DC2626;">
+                @_error
             </div>
         }
         else
         {
-            @if (_mantenimientosPendientes.Any())
+            <!-- ALERT BANNER -->
+            @if (_mantenimientos.Any(m => m.Prioridad == "Urgente" && m.Estado != "Completado" && m.Estado != "Finalizado"))
             {
+                var mantUrgente = _mantenimientos.First(m => m.Prioridad == "Urgente" && m.Estado != "Completado" && m.Estado != "Finalizado");
                 <div class="alert-banner">
                     <span class="alert-icon">⚠</span>
-                    <span>
-                        <strong>Mantenimiento pendiente:</strong>
-                        @_mantenimientosPendientes.First().TipoMantenimiento?.Nombre
-                        — @_mantenimientosPendientes.First().Descripcion ·
-                        <a href="/mantenimiento">Ver detalles</a>
-                    </span>
+                    <span><strong>Mantenimiento urgente:</strong> @mantUrgente.TipoMantenimiento?.Nombre — @mantUrgente.Descripcion · <a href="/mantenimiento">Ver detalles</a></span>
+                    <button class="alert-close">✕</button>
                 </div>
             }
 
@@ -58,13 +68,9 @@
                         <div class="kpi-label">Residentes Activos</div>
                         <div class="kpi-icon-wrap blue">⊞</div>
                     </div>
-                    <div class="kpi-value">@_totalResidentes</div>
-                    <div class="kpi-meta">
-                        <span class="kpi-delta up">● Activos</span> en el sistema
-                    </div>
-                    <div class="kpi-bar">
-                        <div class="kpi-bar-fill" style="width:@(_totalResidentes > 0 ? "80%" : "0%")"></div>
-                    </div>
+                    <div class="kpi-value">@_kpiResidentesActivos</div>
+                    <div class="kpi-meta"><span class="kpi-delta up">●</span> Usuarios habilitados</div>
+                    <div class="kpi-bar"><div class="kpi-bar-fill" style="width:100%"></div></div>
                 </div>
 
                 <div class="kpi-card kpi-green">
@@ -72,15 +78,9 @@
                         <div class="kpi-label">Ingresos Hoy</div>
                         <div class="kpi-icon-wrap green">⇌</div>
                     </div>
-                    <div class="kpi-value">@_ingresosHoy</div>
-                    <div class="kpi-meta">
-                        <span class="kpi-delta up">● @_visitantesActivos activos</span> dentro ahora
-                    </div>
-                    <div class="kpi-bar">
-                        <div class="kpi-bar-fill green"
-                             style="width:@(_ingresosHoy > 0 ? Math.Min(_ingresosHoy * 5, 100) + "%" : "0%")">
-                        </div>
-                    </div>
+                    <div class="kpi-value">@_kpiIngresosHoy</div>
+                    <div class="kpi-meta"><span class="kpi-delta up">●</span> Registros del día</div>
+                    <div class="kpi-bar"><div class="kpi-bar-fill green" style="width:100%"></div></div>
                 </div>
 
                 <div class="kpi-card kpi-amber">
@@ -88,18 +88,9 @@
                         <div class="kpi-label">Parqueadero</div>
                         <div class="kpi-icon-wrap amber">⬡</div>
                     </div>
-                    <div class="kpi-value">
-                        @_cuposOcupados <small>/ @_totalCupos</small>
-                    </div>
-                    <div class="kpi-meta">
-                        <span class="kpi-delta warn">● @_visitantesParqueadero visitantes</span>
-                        · @_cuposLibres disponibles
-                    </div>
-                    <div class="kpi-bar">
-                        <div class="kpi-bar-fill amber"
-                             style="width:@(_totalCupos > 0 ? (_cuposOcupados * 100 / _totalCupos) + "%" : "0%")">
-                        </div>
-                    </div>
+                    <div class="kpi-value">@(_kpiParqueaderosOcupados + _kpiParqueaderosVisitantes) <small>/ 30</small></div>
+                    <div class="kpi-meta"><span class="kpi-delta warn">● @_kpiParqueaderosVisitantes visitantes</span> · @(30 - (_kpiParqueaderosOcupados + _kpiParqueaderosVisitantes)) libres</div>
+                    <div class="kpi-bar"><div class="kpi-bar-fill amber" style="width:@((_kpiParqueaderosOcupados + _kpiParqueaderosVisitantes) * 100 / 30)%"></div></div>
                 </div>
 
                 <div class="kpi-card kpi-red">
@@ -107,15 +98,9 @@
                         <div class="kpi-label">Paquetes Pendientes</div>
                         <div class="kpi-icon-wrap red">◻</div>
                     </div>
-                    <div class="kpi-value">@_paquetesPendientes</div>
-                    <div class="kpi-meta">
-                        <span class="kpi-delta down">● Sin recoger</span> en portería
-                    </div>
-                    <div class="kpi-bar">
-                        <div class="kpi-bar-fill red"
-                             style="width:@(_paquetesPendientes > 0 ? Math.Min(_paquetesPendientes * 10, 100) + "%" : "0%")">
-                        </div>
-                    </div>
+                    <div class="kpi-value">@_kpiPaquetesPendientes</div>
+                    <div class="kpi-meta"><span class="kpi-delta down">●</span> Sin reclamar</div>
+                    <div class="kpi-bar"><div class="kpi-bar-fill red" style="width:@Math.Min(100, _kpiPaquetesPendientes * 20)%"></div></div>
                 </div>
 
                 <div class="kpi-card kpi-teal">
@@ -123,16 +108,9 @@
                         <div class="kpi-label">Reservas Activas</div>
                         <div class="kpi-icon-wrap teal">◷</div>
                     </div>
-                    <div class="kpi-value">@_reservasActivas</div>
-                    <div class="kpi-meta">
-                        <span class="kpi-delta up">● @_reservasPendientes pendientes</span>
-                        de confirmar
-                    </div>
-                    <div class="kpi-bar">
-                        <div class="kpi-bar-fill teal"
-                             style="width:@(_reservasActivas > 0 ? Math.Min(_reservasActivas * 10, 100) + "%" : "0%")">
-                        </div>
-                    </div>
+                    <div class="kpi-value">@_kpiReservasActivas</div>
+                    <div class="kpi-meta"><span class="kpi-delta up">●</span> Confirmadas a futuro</div>
+                    <div class="kpi-bar"><div class="kpi-bar-fill teal" style="width:100%"></div></div>
                 </div>
 
                 <div class="kpi-card kpi-purple">
@@ -140,15 +118,9 @@
                         <div class="kpi-label">Mantenimientos</div>
                         <div class="kpi-icon-wrap purple">⚙</div>
                     </div>
-                    <div class="kpi-value">@_totalMantenimientos</div>
-                    <div class="kpi-meta">
-                        <span class="kpi-delta warn">● @_mantenimientosPendientes.Count pendientes</span>
-                    </div>
-                    <div class="kpi-bar">
-                        <div class="kpi-bar-fill purple"
-                             style="width:@(_totalMantenimientos > 0 ? Math.Min(_totalMantenimientos * 10, 100) + "%" : "0%")">
-                        </div>
-                    </div>
+                    <div class="kpi-value">@_kpiMantenimientos</div>
+                    <div class="kpi-meta"><span class="kpi-delta warn">●</span> Pendientes o curso</div>
+                    <div class="kpi-bar"><div class="kpi-bar-fill purple" style="width:100%"></div></div>
                 </div>
             </section>
 
@@ -160,6 +132,10 @@
                         <a href="/ingresos" class="panel-link">Ver todo →</a>
                     </div>
                     <div class="activity-list">
+                        @if (!_activityFeed.Any())
+                        {
+                            <p style="color:var(--text3); font-size:0.9rem; padding: 1rem 0;">No hay actividad reciente.</p>
+                        }
                         @foreach (var item in _activityFeed)
                         {
                             <div class="activity-item">
@@ -171,52 +147,32 @@
                                 <span class="act-time">@item.Time</span>
                             </div>
                         }
-                        @if (!_activityFeed.Any())
-                        {
-                            <p style="color:var(--text3); font-style:italic; padding: 1rem 0;">
-                                Sin actividad reciente
-                            </p>
-                        }
                     </div>
                 </div>
 
                 <div class="panel parking-panel">
                     <div class="panel-header">
-                        <h2 class="panel-title">Parqueadero — Cupos</h2>
+                        <h2 class="panel-title">Parqueadero — Planta 1</h2>
                         <a href="/parqueadero" class="panel-link">Gestionar →</a>
                     </div>
                     <div class="parking-legend">
                         <span class="leg-dot free"></span> Disponible
-                        <span class="leg-dot occ"></span> Residente
+                        <span class="leg-dot occ"></span> Ocupado
                         <span class="leg-dot vis"></span> Visitante
                     </div>
                     <div class="parking-grid">
-                        @foreach (var cupo in _parqueaderos.Take(30))
+                        @for (int i = 0; i < 30; i++)
                         {
-                            var visitanteActivo = _visitantes.Any(v =>
-                            v.ParqueaderoId == cupo.ParqueaderoId &&
-                            v.FechaHoraSalida == null);
-                            var state = visitanteActivo ? "vis"
-                            : cupo.UnidadId != null ? "occ"
-                            : "free";
-                            <div class="p-slot @state" title="Cupo @cupo.Numero">
-                                <span class="slot-num">@cupo.Numero</span>
+                            var state = _parkingStates[i];
+                            <div class="p-slot @state" title="Cupo @(i+1)">
+                                <span class="slot-num">@(i+1)</span>
                             </div>
                         }
                     </div>
                     <div class="parking-summary">
-                        <div class="ps-item">
-                            <span class="ps-num green">@_cuposLibres</span>
-                            <span class="ps-lbl">Libres</span>
-                        </div>
-                        <div class="ps-item">
-                            <span class="ps-num amber">@_cuposOcupados</span>
-                            <span class="ps-lbl">Residentes</span>
-                        </div>
-                        <div class="ps-item">
-                            <span class="ps-num red">@_visitantesParqueadero</span>
-                            <span class="ps-lbl">Visitantes</span>
-                        </div>
+                        <div class="ps-item"><span class="ps-num green">@(30 - (_kpiParqueaderosOcupados + _kpiParqueaderosVisitantes))</span><span class="ps-lbl">Libres</span></div>
+                        <div class="ps-item"><span class="ps-num amber">@_kpiParqueaderosOcupados</span><span class="ps-lbl">Ocupados</span></div>
+                        <div class="ps-item"><span class="ps-num red">@_kpiParqueaderosVisitantes</span><span class="ps-lbl">Visitantes</span></div>
                     </div>
                 </div>
             </section>
@@ -233,26 +189,18 @@
                             <tr><th>Zona</th><th>Residente</th><th>Fecha</th><th>Estado</th></tr>
                         </thead>
                         <tbody>
-                            @foreach (var r in _proximasReservas)
+                            @foreach(var r in _reservasFuturas.Take(4))
                             {
                                 <tr>
-                                    <td><span class="zone-tag">@r.ZonaComun?.Nombre</span></td>
-                                    <td>@(r.Usuario?.Nombre ?? "N/A")</td>
-                                    <td>@r.Fecha.ToString("d MMM yyyy")</td>
-                                    <td>
-                                        <span class="status-tag @(r.Estado == "Confirmada" ? "confirmed" : "pending")">
-                                            @r.Estado
-                                        </span>
-                                    </td>
+                                    <td><span class="zone-tag salon">@(r.ZonaComun?.Nombre ?? "Zona")</span></td>
+                                    <td>@(r.Usuario?.Nombre)</td>
+                                    <td>@r.Fecha.ToString("dd MMM hh:mm tt")</td>
+                                    <td><span class="status-tag confirmed">@r.Estado</span></td>
                                 </tr>
                             }
-                            @if (!_proximasReservas.Any())
+                            @if(!_reservasFuturas.Any())
                             {
-                                <tr>
-                                    <td colspan="4" style="color:var(--text3); font-style:italic; padding:.75rem;">
-                                        Sin reservas próximas
-                                    </td>
-                                </tr>
+                                <tr><td colspan="4" style="text-align:center; color:var(--text3);">No hay reservas próximas</td></tr>
                             }
                         </tbody>
                     </table>
@@ -264,36 +212,22 @@
                         <a href="/mantenimiento" class="panel-link">Ver todos →</a>
                     </div>
                     <div class="maint-list">
-                        @foreach (var m in _mantenimientosPendientes.Take(3))
+                        @foreach(var m in _mantenimientosActivos.Take(3))
                         {
-                            <div class="maint-item @(m.Estado == "Pendiente" ? "urgent" : "")">
+                            <div class="maint-item @(m.Prioridad == "Urgente" ? "urgent" : "")">
                                 <div class="maint-left">
-                                    <span class="maint-type">
-                                        @(m.TipoMantenimiento?.Nombre ?? "General")
-                                    </span>
-                                    <span class="maint-desc">
-                                        @(m.Descripcion ?? "Sin descripción")
-                                        @if (m.ZonaComun != null)
-                                        {
-                                            <text> — @m.ZonaComun.Nombre</text>
-                                        }
-                                    </span>
+                                    <span class="maint-type">@(m.TipoMantenimiento?.Nombre ?? "General")</span>
+                                    <span class="maint-desc">@m.Descripcion</span>
                                 </div>
                                 <div class="maint-right">
-                                    <span class="maint-date">
-                                        @m.Fecha.ToString("d MMM")
-                                    </span>
-                                    <span class="urgency-tag @(m.Estado == "Pendiente" ? "urgent" : "normal")">
-                                        @(m.Estado ?? "Pendiente")
-                                    </span>
+                                    <span class="maint-date">@m.FechaReporte.ToString("dd MMM")</span>
+                                    <span class="urgency-tag @(m.Prioridad == "Urgente" ? "urgent" : "normal")">@m.Prioridad</span>
                                 </div>
                             </div>
                         }
-                        @if (!_mantenimientosPendientes.Any())
+                        @if(!_mantenimientosActivos.Any())
                         {
-                            <p style="color:var(--text3); font-style:italic; padding: 1rem 0;">
-                                Sin mantenimientos pendientes
-                            </p>
+                            <p style="color:var(--text3); font-size:0.9rem; padding: 1rem 0;">No hay mantenimientos pendientes.</p>
                         }
                     </div>
                 </div>
@@ -304,137 +238,201 @@
                         <a href="/mensajeria" class="panel-link">Ver todo →</a>
                     </div>
                     <div class="pkg-list">
-                        @foreach (var p in _paquetesRecientes.Take(3))
+                        @foreach(var p in _paquetesPendientes.Take(3))
                         {
-                            var entregado = p.FechaEntrega != null;
                             <div class="pkg-item">
-                                <div class="pkg-icon">@(entregado ? "✉️" : "📦")</div>
+                                <div class="pkg-icon">📦</div>
                                 <div class="pkg-body">
-                                    <span class="pkg-name">
-                                        Apto @(p.Unidad?.Numero ?? "?")
-                                    </span>
-                                    <span class="pkg-company">
-                                        @(p.Empresa ?? "Sin empresa") · Guía @(p.Guia ?? "N/A")
-                                    </span>
+                                    <span class="pkg-name">Apto @(p.Apartamento?.Numero) — @(p.Destinatario ?? p.Usuario?.Nombre)</span>
+                                    <span class="pkg-company">@p.EmpresaTransportadora</span>
                                 </div>
                                 <div class="pkg-right">
-                                    <span class="pkg-date">
-                                        @p.FechaRecepcion.ToString("d MMM HH:mm")
-                                    </span>
-                                    <span class="pkg-status @(entregado ? "delivered" : "waiting")">
-                                        @(entregado ? "Entregado" : "Sin recoger")
-                                    </span>
+                                    <span class="pkg-date">@p.FechaRecibido.ToString("dd MMM HH:mm")</span>
+                                    <span class="pkg-status waiting">Sin recoger</span>
                                 </div>
                             </div>
                         }
-                        @if (!_paquetesRecientes.Any())
+                        @if(!_paquetesPendientes.Any())
                         {
-                            <p style="color:var(--text3); font-style:italic; padding: 1rem 0;">
-                                Sin paquetes recientes
-                            </p>
+                            <p style="color:var(--text3); font-size:0.9rem; padding: 1rem 0;">No hay paquetes pendientes.</p>
                         }
                     </div>
                 </div>
             </section>
         }
-
     </main>
 </div>
 
 @code {
     private bool _cargando = true;
-    private bool _inicializado = false;
+    private string? _error;
 
-    // ── Datos crudos de la API ────────────────────────────
+    // Datos
     private List<UsuarioDto> _usuarios = new();
     private List<IngresoDto> _ingresos = new();
     private List<ParqueaderoDto> _parqueaderos = new();
-    private List<ParqueaderoVisitanteDto> _visitantes = new();
-    private List<MensajeriaDto> _mensajeria = new();
+    private List<ParqueaderoVisitanteDto> _parqueaderosVis = new();
+    private List<MensajeriaDto> _mensajerias = new();
     private List<ReservaDto> _reservas = new();
     private List<MantenimientoDto> _mantenimientos = new();
+    
+    // Listas Filtradas
+    private List<ReservaDto> _reservasFuturas = new();
+    private List<MantenimientoDto> _mantenimientosActivos = new();
+    private List<MensajeriaDto> _paquetesPendientes = new();
 
-    // ── KPIs computados ───────────────────────────────────
-    private int _totalResidentes => _usuarios.Count(u => u.Activo);
-    private int _ingresosHoy => _ingresos.Count(i => i.FechaHoraIngreso.Date == DateTime.Today);
-    private int _visitantesActivos => _ingresos.Count(i => i.FechaHoraSalida == null);
-    private int _totalCupos => _parqueaderos.Count;
-    private int _cuposLibres => _parqueaderos.Count(p => p.UnidadId == null && !_visitantes.Any(v => v.ParqueaderoId == p.ParqueaderoId && v.FechaHoraSalida == null));
-    private int _cuposOcupados => _parqueaderos.Count(p => p.UnidadId != null);
-    private int _visitantesParqueadero => _visitantes.Count(v => v.FechaHoraSalida == null);
-    private int _paquetesPendientes => _mensajeria.Count(m => m.FechaEntrega == null);
-    private int _reservasActivas => _reservas.Count(r => r.Estado != "Cancelada");
-    private int _reservasPendientes => _reservas.Count(r => r.Estado == "Pendiente");
-    private int _totalMantenimientos => _mantenimientos.Count;
+    // KPIs
+    private int _kpiResidentesActivos = 0;
+    private int _kpiIngresosHoy = 0;
+    private int _kpiParqueaderosOcupados = 0;
+    private int _kpiParqueaderosVisitantes = 0;
+    private int _kpiPaquetesPendientes = 0;
+    private int _kpiReservasActivas = 0;
+    private int _kpiMantenimientos = 0;
 
-    // ── Listas para secciones ─────────────────────────────
-    private List<MantenimientoDto> _mantenimientosPendientes =>
-        _mantenimientos
-            .Where(m => m.Estado == "Pendiente" || m.Estado == null)
-            .OrderBy(m => m.Fecha)
-            .ToList();
+    private List<ActivityItem> _activityFeed = new();
+    private string[] _parkingStates = new string[30];
 
-    private List<ReservaDto> _proximasReservas =>
-        _reservas
-            .Where(r => r.Fecha.Date >= DateTime.Today && r.Estado != "Cancelada")
-            .OrderBy(r => r.Fecha)
-            .Take(4)
-            .ToList();
-
-    private List<MensajeriaDto> _paquetesRecientes =>
-        _mensajeria
-            .OrderByDescending(m => m.FechaRecepcion)
-            .Take(3)
-            .ToList();
-
-    // ── Actividad reciente desde ingresos reales ──────────
-    private List<ActivityItem> _activityFeed =>
-        _ingresos
-            .OrderByDescending(i => i.FechaHoraIngreso)
-            .Take(8)
-            .Select(i => new ActivityItem(
-                i.Tipo == "Residente" ? "Ingreso Residente"
-                : i.Tipo == "Visitante" ? "Visitante registrado"
-                : "Proveedor registrado",
-                $"{i.NombrePersona} · Doc. {i.Documento}",
-                i.FechaHoraIngreso.ToString("hh:mm tt"),
-                i.Tipo == "Residente" ? "blue"
-                : i.Tipo == "Visitante" ? "green"
-                : "amber"
-            ))
-            .ToList();
-
-    // ── Ciclo de vida ─────────────────────────────────────
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _inicializado) return;
-        _inicializado = true;
-        await CargarDatos();
-        StateHasChanged();
+        if (firstRender)
+        {
+            await CargarDatosReales();
+        }
     }
 
-    private async Task CargarDatos()
+    private async Task CargarDatosReales()
     {
         try
         {
             _cargando = true;
-            _usuarios = await DashboardService.GetUsuariosAsync();
-            _ingresos = await DashboardService.GetIngresosAsync();
-            _parqueaderos = await DashboardService.GetParqueaderosAsync();
-            _visitantes = await DashboardService.GetVisitantesAsync();
-            _mensajeria = await DashboardService.GetMensajeriaAsync();
-            _reservas = await DashboardService.GetReservasAsync();
-            _mantenimientos = await DashboardService.GetMantenimientosAsync();
+            _error = null;
+            StateHasChanged();
+
+            // Cargar datos en paralelo para mayor rapidez
+            var taskUsuarios = ResidenteService.GetUsuariosAsync();
+            var taskIngresos = IngresoService.GetIngresosAsync();
+            var taskParqueaderos = ParqueaderoService.GetParqueaderosAsync();
+            var taskParqueaderosVis = ParqueaderoService.GetVisitantesAsync();
+            var taskMensajerias = MensajeriaService.GetMensajeriasAsync();
+            var taskReservas = ReservaService.GetReservasAsync();
+            var taskMantenimientos = MantenimientoService.GetMantenimientosAsync();
+
+            await Task.WhenAll(taskUsuarios, taskIngresos, taskParqueaderos, taskParqueaderosVis, taskMensajerias, taskReservas, taskMantenimientos);
+
+            _usuarios = taskUsuarios.Result;
+            _ingresos = taskIngresos.Result;
+            _parqueaderos = taskParqueaderos.Result;
+            _parqueaderosVis = taskParqueaderosVis.Result;
+            _mensajerias = taskMensajerias.Result;
+            _reservas = taskReservas.Result;
+            _mantenimientos = taskMantenimientos.Result;
+
+            CalcularKPIs();
+            GenerarActivityFeed();
+            GenerarMapaParqueadero();
+            PrepararListasProximas();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error cargando dashboard: {ex.Message}");
+            // _error = "Error al cargar datos del Dashboard: " + ex.Message;
+            // Para no romper la UI si un servicio falla, los manejaremos como silenciosos
+            // El fallback se basa en que las listas quedarán vacías.
         }
         finally
         {
             _cargando = false;
+            StateHasChanged();
         }
     }
 
-    private record ActivityItem(string Title, string Sub, string Time, string Color);
+    private void CalcularKPIs()
+    {
+        _kpiResidentesActivos = _usuarios.Count(u => u.Activo && 
+            (u.Rol?.Nombre?.ToLower().Contains("residente") == true ||
+             u.Rol?.Nombre?.ToLower() == "propietario" ||
+             u.Rol?.Nombre?.ToLower() == "inquilino"));
+        
+        var hoy = DateTime.Today;
+        _kpiIngresosHoy = _ingresos.Count(i => i.FechaHoraEntrada.Date == hoy);
+        
+        _kpiParqueaderosOcupados = _parqueaderos.Count(p => p.Estado == "Ocupado");
+        _kpiParqueaderosVisitantes = _parqueaderosVis.Count(v => v.FechaHoraSalida == null);
+        
+        _kpiPaquetesPendientes = _mensajerias.Count(m => m.Estado != "Entregado");
+        
+        _kpiReservasActivas = _reservas.Count(r => r.Estado == "Confirmada" && r.Fecha >= hoy);
+        
+        _kpiMantenimientos = _mantenimientos.Count(m => m.Estado == "Pendiente" || m.Estado == "En Curso" || m.Estado == "Urgente");
+    }
+
+    private void PrepararListasProximas()
+    {
+        var hoy = DateTime.Today;
+        _reservasFuturas = _reservas
+            .Where(r => r.Estado == "Confirmada" && r.Fecha >= hoy)
+            .OrderBy(r => r.Fecha)
+            .ToList();
+
+        _mantenimientosActivos = _mantenimientos
+            .Where(m => m.Estado != "Completado" && m.Estado != "Finalizado" && m.Estado != "Cancelado")
+            .OrderByDescending(m => m.Prioridad == "Urgente" ? 1 : 0)
+            .ThenByDescending(m => m.FechaReporte)
+            .ToList();
+
+        _paquetesPendientes = _mensajerias
+            .Where(m => m.Estado != "Entregado")
+            .OrderByDescending(m => m.FechaRecibido)
+            .ToList();
+    }
+
+    private void GenerarActivityFeed()
+    {
+        _activityFeed.Clear();
+        var actividades = new List<ActivityItem>();
+
+        // 3 Ingresos más recientes
+        foreach(var ing in _ingresos.OrderByDescending(i => i.FechaHoraEntrada).Take(3))
+        {
+            string resp = ing.TipoIngreso == "Visitante" ? (ing.Visitante?.Nombre ?? "Anónimo") : (ing.Usuario?.Nombre ?? "Anónimo");
+            actividades.Add(new ActivityItem($"Ingreso {ing.TipoIngreso}", resp, ing.FechaHoraEntrada.ToString("HH:mm"), "blue", ing.FechaHoraEntrada));
+        }
+        
+        // 3 Paquetes
+        foreach(var msj in _mensajerias.OrderByDescending(m => m.FechaRecibido).Take(3))
+        {
+            actividades.Add(new ActivityItem("Paquete", $"{msj.EmpresaTransportadora} → Apto {(msj.Apartamento?.Numero)}", msj.FechaRecibido.ToString("HH:mm"), "amber", msj.FechaRecibido));
+        }
+
+        // 2 Mantenimientos
+        foreach(var mant in _mantenimientos.OrderByDescending(m => m.FechaReporte).Take(2))
+        {
+            actividades.Add(new ActivityItem("Mantenimiento", $"{mant.TipoMantenimiento?.Nombre} - {(mant.ZonaComun?.Nombre ?? "General")}", mant.FechaReporte.ToString("HH:mm"), mant.Prioridad == "Urgente" ? "red" : "gray", mant.FechaReporte));
+        }
+
+        _activityFeed = actividades.OrderByDescending(a => a.FechaOriginal).Take(8).ToList();
+    }
+
+    private void GenerarMapaParqueadero()
+    {
+        for(int i=0; i<30; i++) _parkingStates[i] = "free";
+        
+        foreach(var p in _parqueaderos)
+        {
+            if(int.TryParse(p.Numero, out int numero) && numero > 0 && numero <= 30)
+            {
+                if(p.Estado == "Ocupado") _parkingStates[numero - 1] = "occ";
+            }
+        }
+        
+        foreach(var pv in _parqueaderosVis.Where(v => v.FechaHoraSalida == null))
+        {
+            if(pv.Parqueadero != null && int.TryParse(pv.Parqueadero.Numero, out int numero) && numero > 0 && numero <= 30)
+            {
+                _parkingStates[numero - 1] = "vis";
+            }
+        }
+    }
+
+    private record ActivityItem(string Title, string Sub, string Time, string Color, DateTime FechaOriginal);
 }

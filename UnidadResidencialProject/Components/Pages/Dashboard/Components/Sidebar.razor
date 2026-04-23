@@ -1,4 +1,4 @@
-﻿@inject AuthService AuthService
+@inject AuthService AuthService
 @inject NavigationManager Nav
 
 
@@ -58,10 +58,24 @@
             </a>
         }
 
+
+        @if (_esAdmin || _esVigilante)
+        {
+            <a class="nav-item" href="/ingresos">
+                <span class="nav-icon">⇌</span>
+                <span>Control de Acceso</span>
+            </a>
+            <a class="nav-item" href="/parqueadero">
+                <span class="nav-icon">⬡</span>
+                <span>Parqueadero</span>
+            </a>
+        }
+
         <a class="nav-item" href="/mensajeria">
             <span class="nav-icon">◻</span>
             <span>Mensajería</span>
         </a>
+
 
         <a class="nav-item" href="/reservas">
             <span class="nav-icon">◷</span>
@@ -91,10 +105,14 @@
 
     </nav>
 
+
     <div class="sidebar-footer">
         <div class="user-chip">
             <div class="user-avatar">@_inicial</div>
+            <div class="user-avatar">@_inicial</div>
             <div class="user-info">
+                <span class="user-name">@_nombreRol</span>
+                <span class="user-role">@_rol</span>
                 <span class="user-name">@_nombreRol</span>
                 <span class="user-role">@_rol</span>
             </div>

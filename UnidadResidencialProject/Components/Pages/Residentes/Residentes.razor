@@ -21,9 +21,7 @@
                 <span class="page-breadcrumb">Gestión de residentes por torre y unidad</span>
             </div>
             <div class="topbar-right">
-                <button class="btn-primary" @onclick="@(() => _mostrarFormulario = true)">
-                    + Registrar Residente
-                </button>
+                <!-- Botón de agregar removido, se agregan desde el panel de Admin -->
             </div>
         </header>
 
@@ -111,6 +109,22 @@
             _apartamentos = await ResidenteService.GetApartamentosAsync();
             
             _nombresTorres = _torres.Select(t => t.Nombre).ToList();
+
+            // Wire up relations locally if backend didn't include them
+            foreach (var r in _residentes)
+            {
+                if (r.ResidentesUnidad != null)
+                {
+                    foreach (var ru in r.ResidentesUnidad)
+                    {
+                        if (ru.Unidad == null)
+                            ru.Unidad = _apartamentos.FirstOrDefault(a => a.UnidadId == ru.UnidadId);
+                        
+                        if (ru.Unidad != null && ru.Unidad.Torre == null)
+                            ru.Unidad.Torre = _torres.FirstOrDefault(t => t.TorreId == ru.Unidad.TorreId);
+                    }
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -171,12 +185,31 @@
                     nuevoUsuario.UsuarioId, datos.UnidadId, datos.EsPropietario);
 
                 if (!okAsig)
+                {
                     _error = $"Usuario creado pero error al asignar apartamento: {errorAsig}";
+                }
                 else
+                {
                     await CargarDatos();
+                    
+                    // Inyectar manualmente la relación en caso de que el backend no la retorne de inmediato por caché
+                    var userLocal = _residentes.FirstOrDefault(r => r.UsuarioId == nuevoUsuario.UsuarioId);
+                    if (userLocal != null)
+                    {
+                        userLocal.ResidentesUnidad ??= new List<ResidenteUnidadDto>();
+                        if (!userLocal.ResidentesUnidad.Any(ru => ru.UnidadId == datos.UnidadId))
+                        {
+                            var nuevaRel = new ResidenteUnidadDto { UsuarioId = userLocal.UsuarioId, UnidadId = datos.UnidadId, EsPropietario = datos.EsPropietario };
+                            nuevaRel.Unidad = _apartamentos.FirstOrDefault(a => a.UnidadId == datos.UnidadId);
+                            if (nuevaRel.Unidad != null && nuevaRel.Unidad.Torre == null)
+                                nuevaRel.Unidad.Torre = _torres.FirstOrDefault(t => t.TorreId == nuevaRel.Unidad.TorreId);
+                            
+                            userLocal.ResidentesUnidad.Add(nuevaRel);
+                        }
+                    }
+                }
             }
-
-            _error = null;
+            // Eliminado: _error = null; para no ocultar errores de asignación
         }
         catch (Exception ex)
         {

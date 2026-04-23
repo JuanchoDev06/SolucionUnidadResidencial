@@ -21,7 +21,7 @@
             <span class="stat-lbl">Visitantes</span>
         </div>
         <div class="stat-chip amber">
-            <span class="stat-num">0</span> <!-- Reemplazar cuando se mapeen unidades -->
+            <span class="stat-num">@(Residentes.SelectMany(r => r.ResidentesUnidad ?? new List<ResidenteUnidadDto>()).Select(ru => ru.UnidadId).Distinct().Count())</span>
             <span class="stat-lbl">Unidades ocupadas</span>
         </div>
     </div>
@@ -30,8 +30,23 @@
     <div class="torres-grid">
         @foreach (var torre in Torres)
         {
-            var rsTorre = 0; // Filtrar por torre en el futuro
-            var aptos = 0; // Contar aptos distintos en el futuro
+            // Encontrar todos los residentes asociados a esta torre
+            var residentesEnTorre = Residentes.Where(r => 
+                r.ResidentesUnidad?.Any(ru => ru.Unidad?.Torre?.Nombre == torre) == true).ToList();
+
+            var rsTorre = residentesEnTorre.Count;
+            
+            // Contar unidades (apartamentos) únicas ocupadas en esta torre
+            var aptos = residentesEnTorre
+                .SelectMany(r => r.ResidentesUnidad ?? new List<ResidenteUnidadDto>())
+                .Where(ru => ru.Unidad?.Torre?.Nombre == torre)
+                .Select(ru => ru.UnidadId)
+                .Distinct()
+                .Count();
+
+            var propietarios = residentesEnTorre.Count(r => r.Rol?.Nombre?.ToLower() == "propietario");
+            var inquilinos = residentesEnTorre.Count(r => r.Rol?.Nombre?.ToLower() == "inquilino" || r.Rol?.Nombre?.ToLower() == "residente");
+
             <div class="torre-card">
                 <div class="torre-header">
                     <span class="torre-icon">🏢</span>
@@ -47,11 +62,11 @@
                         <span class="ts-lbl">Aptos ocupados</span>
                     </div>
                     <div class="ts-item">
-                        <span class="ts-num">0</span>
+                        <span class="ts-num">@propietarios</span>
                         <span class="ts-lbl">Propietarios</span>
                     </div>
                     <div class="ts-item">
-                        <span class="ts-num">0</span>
+                        <span class="ts-num">@inquilinos</span>
                         <span class="ts-lbl">Inquilinos</span>
                     </div>
                 </div>

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -19,6 +19,35 @@
     <ReconnectModal />
     <script src="js/download.js"></script>
     <script src="@Assets["_framework/blazor.web.js"]"></script>
+
+    <!-- Lib para exportar HTML a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <script>
+        window.descargarArchivo = (nombreArchivo, base64) => {
+            const link = document.createElement('a');
+            link.download = nombreArchivo;
+            link.href = "data:text/csv;base64," + base64;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        window.exportarPdf = (elementId, filename) => {
+            const element = document.getElementById(elementId);
+            if(!element) return;
+            
+            const opt = {
+                margin:       10,
+                filename:     filename,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        };
+    </script>
 </body>
 
 </html>
