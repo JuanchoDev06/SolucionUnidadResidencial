@@ -45,6 +45,9 @@ Sistema web desarrollado con **Blazor Web App (.NET 8)** para la administración
 
 ---
 
+##A tener en cuenta!
+La aplicacion tiene una conexion por medio de una api al backend el cual su repositorio se encuentra en: https://github.com/caes2004/API-.NET.git
+
 ## 📦 Módulos del Sistema
 
 ### ✅ Dashboard
@@ -177,7 +180,7 @@ Presiona `F5` en Visual Studio o haz clic en el botón **Ejecutar**. El proyecto
 
 | Módulo | Interfaz | BD Conectada |
 |---|---|---|
-| Dashboard | ✅ Completo | ⏳ Pendiente |
+| Dashboard | ✅ Completo | ✅ Completo |
 | Control de Acceso | ✅ Completo | ✅ Conectado |
 | Parqueadero | ✅ Completo | ✅ Conectado |
 | Mantenimiento | ✅ Completo | ✅ En progreso |
@@ -185,9 +188,9 @@ Presiona `F5` en Visual Studio o haz clic en el botón **Ejecutar**. El proyecto
 | Reservas | ✅ Completo | ✅ Conectado |
 | Residentes & Apartamentos | ✅ Completo | ✅ Conectado |
 | Login / Autenticación JWT | ✅ Completo | ✅ Conectado |
-| Módulo de Admin | 🔜 Pendiente | 🔜 Pendiente |
-| Autorización por Roles | 🔜 Pendiente | 🔜 Pendiente |
-| Módulo de Reportes | 🔜 Pendiente | 🔜 Pendiente |
+| Módulo de Admin | ✅ Completo | ✅ Completo |
+| Autorización por Roles | ✅ Completo | ✅ Completo |
+| Módulo de Reportes | ✅ Completo | ✅ Completo |
 
 ---
 
