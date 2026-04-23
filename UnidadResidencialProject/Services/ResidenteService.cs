@@ -59,6 +59,19 @@ namespace UnidadResidencialProject.Services
             return (false, $"HTTP {(int)response.StatusCode}: {body}");
         }
 
+        // ── DELETE /api/Usuarios/{id} ──
+        public async Task<(bool ok, string? error)> EliminarUsuarioAsync(int id)
+        {
+            await SetAuthHeaderAsync();
+            var response = await _http.DeleteAsync($"api/Usuarios/{id}");
+
+            if (response.IsSuccessStatusCode)
+                return (true, null);
+
+            var body = await response.Content.ReadAsStringAsync();
+            return (false, $"HTTP {(int)response.StatusCode}: {body}");
+        }
+
         // ── GET /api/Apartamentos ──
 
         public async Task<List<ApartamentoDto>> GetApartamentosAsync()

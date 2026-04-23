@@ -25,6 +25,7 @@
                     <th>Email</th>
                     <th>Rol</th>
                     <th>Estado</th>
+                    <th>Torre / Apto</th>
                     <th>Acción</th>
                 </tr>
             </thead>
@@ -42,11 +43,38 @@
                                 @(u.Activo ? "Activo" : "Inactivo")
                             </span>
                         </td>
+                        <td class="td-mono">
+                            @{
+                                var ru = u.ResidentesUnidad?.FirstOrDefault();
+                                var torre = ru?.Unidad?.Torre?.Nombre ?? "N/A";
+                                var apto = ru?.Unidad?.Numero ?? "N/A";
+                            }
+                            @torre - @apto
+                        </td>
                         <td>
-                            <button class="btn-toggle @(u.Activo ? "desactivar" : "activar")"
-                                    @onclick="@(() => ToggleUsuario(u))">
-                                @(u.Activo ? "Desactivar" : "Activar")
-                            </button>
+                            @if (u.Rol?.Nombre == "Administrador")
+                            {
+                                <span style="font-size: 0.8rem; color: var(--text3);">🔒 Protegido</span>
+                            }
+                            else if (_confirmandoEliminar == u.UsuarioId)
+                            {
+                                <span style="font-size: 0.8rem; color: var(--text3);">¿Seguro?</span>
+                                <button class="btn-toggle desactivar" style="margin-left: 4px;"
+                                        @onclick="@(() => ConfirmarEliminar(u.UsuarioId))">
+                                    Sí
+                                </button>
+                                <button class="btn-toggle activar" style="margin-left: 4px;"
+                                        @onclick="@(() => _confirmandoEliminar = 0)">
+                                    No
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn-toggle desactivar"
+                                        @onclick="@(() => _confirmandoEliminar = u.UsuarioId)">
+                                    🗑 Eliminar
+                                </button>
+                            }
                         </td>
                     </tr>
                 }
@@ -159,6 +187,7 @@
     private List<UsuarioDto> _usuarios = new();
     private bool _mostrarForm = false;
     private string? _error;
+    private int _confirmandoEliminar = 0;
 
     // Campos del formulario
     private string _nombre = "";
@@ -199,12 +228,12 @@
         catch (Exception ex) { _error = ex.Message; }
     }
 
-    private async Task ToggleUsuario(UsuarioDto u)
+    private async Task ConfirmarEliminar(int usuarioId)
     {
-        u.Activo = !u.Activo;
-        var (ok, error) = await ResidenteService.ActualizarUsuarioAsync(u.UsuarioId, u);
-        if (!ok) { u.Activo = !u.Activo; _error = error; }
-        else await CargarUsuarios();
+        _confirmandoEliminar = 0;
+        var (ok, error) = await ResidenteService.EliminarUsuarioAsync(usuarioId);
+        if (!ok) { _error = error; }
+        else { await CargarUsuarios(); await OnRecargar.InvokeAsync(); }
     }
 
     private async Task CrearUsuario()
