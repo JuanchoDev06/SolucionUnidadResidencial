@@ -23,7 +23,8 @@
                 <div class="form-group">
                     <label class="form-label">Apartamento Destinatario</label>
                     <select class="form-control" @bind="_unidadId">
-                        <option value="0">— Seleccionar Apto —</option>
+                        <option value="19" name="administracion">Administracion</option>
+                        <option value="0">— Seleccionar Destinatario —</option>
                         @foreach (var a in Apartamentos)
                         {
                             <option value="@a.UnidadId">@(a.Torre?.Nombre) - Apto @a.Numero</option>

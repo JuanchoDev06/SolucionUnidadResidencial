@@ -29,7 +29,7 @@
                         <td><span class="tipo-icon">@GetIcono(p)</span></td>
                         <td class="td-empresa">@CleanEmpresa(p.Empresa)</td>
                         <td class="td-mono">@GetGuiaLimpia(p.Guia)</td>
-                        <td class="td-mono">@(p.Unidad?.Torre?.Nombre) - Apto @p.Unidad?.Numero</td>
+                        <td class="td-mono">@(p.Unidad?.Torre?.Nombre) @p.Unidad?.Numero</td>
                         <td class="td-nombre">@GetResidente(p.Guia)</td>
                         <td class="td-mono">@p.FechaRecepcion.ToString("d MMM h:mm tt")</td>
                         <td class="td-mono">@(p.FechaEntrega?.ToString("d MMM h:mm tt") ?? "—")</td>
