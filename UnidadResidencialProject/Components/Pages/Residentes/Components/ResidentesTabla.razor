@@ -17,8 +17,6 @@
                     <th>Apartamento</th>
                     <th>Tipo (Rol)</th>
                     <th>Ingreso</th>
-                    <th>Estado</th>
-                    <th>Acción</th>
                 </tr>
             </thead>
             <tbody>
@@ -55,17 +53,6 @@
                             </span>
                         </td>
                         <td class="td-mono">@r.FechaCreacion.ToString("d MMM yyyy")</td>
-                        <td>
-                            <span class="estado-tag @(r.Activo ? "activo" : "inactivo")">
-                                @(r.Activo ? "Activo" : "Inactivo")
-                            </span>
-                        </td>
-                        <td>
-                            <button class="btn-toggle @(r.Activo ? "desactivar" : "activar")"
-                                    @onclick="@(() => OnDesactivar.InvokeAsync(r.UsuarioId))">
-                                @(r.Activo ? "Desactivar" : "Activar")
-                            </button>
-                        </td>
                     </tr>
                 }
             </tbody>
