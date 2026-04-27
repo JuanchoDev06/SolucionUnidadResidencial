@@ -1,0 +1,209 @@
+@using UnidadResidencialProject.Models
+@using UnidadResidencialProject.Services
+@inject AdminService AdminService
+
+<div class="admin-panel">
+    <div class="panel-header">
+        <h2 class="panel-title">🚗 Gestión de Parqueaderos Privados</h2>
+        <span class="page-breadcrumb">Asigna cupos permanentes a los apartamentos</span>
+    </div>
+
+    @if (_error != null)
+    {
+        <div class="error-msg">@_error</div>
+    }
+
+    <div class="tabla-wrap">
+        @if (_parqueaderos == null || !_parqueaderos.Any())
+        {
+            <div style="padding: 2rem; text-align: center; color: var(--text3);">
+                <p>No se encontraron cupos de parqueadero en la base de datos.</p>
+                <p style="font-size: 0.8rem;">Verifica que la tabla <b>Parqueaderos</b> tenga registros.</p>
+            </div>
+        }
+        else
+        {
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Apartamento</th>
+                        <th>Placa (Residente)</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in _parqueaderos)
+                    {
+                        <tr>
+                            <td class="td-mono">@p.Numero</td>
+                            <td>@p.Tipo</td>
+                            <td>
+                                <span class="estado-tag @(p.UnidadId.HasValue ? "inactivo" : "activo")">
+                                    @(p.UnidadId.HasValue ? "Privado" : "Disponible")
+                                </span>
+                            </td>
+                            <td>
+                                @if (p.UnidadId.HasValue)
+                                {
+                                    @($"{p.Unidad?.Torre?.Nombre ?? ""} - {p.Unidad?.Numero ?? ""}")
+                                }
+                                else
+                                {
+                                    <span style="color: var(--text3); font-style: italic;">Sin asignar</span>
+                                }
+                            </td>
+                            <td class="td-mono">@(p.Placa ?? "-")</td>
+                            <td>
+                                @if (p.UnidadId.HasValue)
+                                {
+                                    <button class="btn-toggle desactivar" @onclick="() => Desasignar(p)">
+                                        Liberar
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn-toggle activar" @onclick="() => AbrirAsignar(p)">
+                                        Asignar
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@if (_mostrarAsignar)
+{
+    <div class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 class="modal-title">Asignar Parqueadero @(_cupoAAsignar?.Numero)</h2>
+                <button class="modal-close" @onclick="CerrarAsignar">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Torre</label>
+                        <select class="form-control" @onchange="OnTorreChanged">
+                            <option value="0">-- Seleccione Torre --</option>
+                            @foreach (var t in Torres)
+                            {
+                                <option value="@t.TorreId">@t.Nombre</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Apartamento</label>
+                        <select class="form-control" @bind="_unidadIdSeleccionada">
+                            <option value="0">-- Seleccione Apto --</option>
+                            @foreach (var a in ApartamentosFiltrados)
+                            {
+                                <option value="@a.UnidadId">@a.Numero</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Placa del Vehículo (Opcional)</label>
+                    <input class="form-control td-mono" type="text" @bind="_placa" placeholder="Ej: ABC-123" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" @onclick="CerrarAsignar">Cancelar</button>
+                <button class="btn-save" @onclick="Asignar">Confirmar Asignación</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public List<TorreDto> Torres { get; set; } = new();
+    [Parameter] public List<ApartamentoDto> Apartamentos { get; set; } = new();
+
+    private List<ParqueaderoDto> _parqueaderos = new();
+    private bool _mostrarAsignar = false;
+    private string? _error;
+
+    private ParqueaderoDto? _cupoAAsignar;
+    private int _torreIdSeleccionada = 0;
+    private int _unidadIdSeleccionada = 0;
+    private string _placa = "";
+
+    private List<ApartamentoDto> ApartamentosFiltrados =>
+        _torreIdSeleccionada > 0 ? Apartamentos.Where(a => a.TorreId == _torreIdSeleccionada).ToList() : new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarParqueaderos();
+    }
+
+    private async Task CargarParqueaderos()
+    {
+        try { _parqueaderos = await AdminService.GetParqueaderosAsync(); }
+        catch (Exception ex) { _error = ex.Message; }
+    }
+
+    private void AbrirAsignar(ParqueaderoDto p)
+    {
+        _cupoAAsignar = p;
+        _mostrarAsignar = true;
+    }
+
+    private void CerrarAsignar()
+    {
+        _mostrarAsignar = false;
+        _torreIdSeleccionada = 0;
+        _unidadIdSeleccionada = 0;
+        _placa = "";
+    }
+
+    private void OnTorreChanged(ChangeEventArgs e)
+    {
+        _torreIdSeleccionada = int.TryParse(e.Value?.ToString(), out var id) ? id : 0;
+        _unidadIdSeleccionada = 0;
+    }
+
+    private async Task Asignar()
+    {
+        if (_cupoAAsignar == null || _unidadIdSeleccionada <= 0) return;
+
+        var dto = new ParqueaderoDto
+        {
+            ParqueaderoId = _cupoAAsignar.ParqueaderoId,
+            Tipo = _cupoAAsignar.Tipo,
+            Numero = _cupoAAsignar.Numero,
+            UnidadId = _unidadIdSeleccionada,
+            Placa = string.IsNullOrWhiteSpace(_placa) ? null : _placa.ToUpper()
+        };
+
+        var (ok, error) = await AdminService.ActualizarParqueaderoAsync(dto.ParqueaderoId, dto);
+        if (ok)
+        {
+            CerrarAsignar();
+            await CargarParqueaderos();
+        }
+        else _error = error;
+    }
+
+    private async Task Desasignar(ParqueaderoDto p)
+    {
+        var dto = new ParqueaderoDto
+        {
+            ParqueaderoId = p.ParqueaderoId,
+            Tipo = p.Tipo,
+            Numero = p.Numero,
+            UnidadId = null,
+            Placa = null
+        };
+
+        var (ok, error) = await AdminService.ActualizarParqueaderoAsync(dto.ParqueaderoId, dto);
+        if (ok) await CargarParqueaderos();
+        else _error = error;
+    }
+}

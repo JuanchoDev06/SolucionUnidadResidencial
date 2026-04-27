@@ -1,4 +1,4 @@
-﻿@page "/parqueadero"
+@page "/parqueadero"
 @using UnidadResidencialProject.Models
 @using UnidadResidencialProject.Services
 @using UnidadResidencialProject.Components.Pages.Parqueadero.Components
@@ -141,7 +141,7 @@
             p.Numero,
             estado,
             p.Unidad != null ? $"Apto {p.Unidad.Numero}" : null,
-            visitanteActivo?.Placa
+            visitanteActivo?.Placa ?? p.Placa
         );
     }).ToList();
 

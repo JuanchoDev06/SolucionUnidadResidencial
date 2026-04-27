@@ -1,4 +1,4 @@
-﻿@using UnidadResidencialProject.Components.Pages.Parqueadero
+@using UnidadResidencialProject.Components.Pages.Parqueadero
 
 <div class="mapa-panel">
     <div class="mapa-header">
@@ -15,7 +15,7 @@
 
     <div class="mapa-seccion-label">🏠 Cubiertos (1–28)</div>
     <div class="cupos-grid">
-        @foreach (var cupo in Cupos.Where(c => c.Tipo == "Cubierto"))
+        @foreach (var cupo in Cupos.Where(c => string.Equals(c.Tipo, "Cubierto", StringComparison.OrdinalIgnoreCase)))
         {
             <div class="cupo @cupo.Estado"
                  title="@GetTooltip(cupo)"
@@ -35,7 +35,7 @@
 
     <div class="mapa-seccion-label" style="margin-top:1rem">🌤️ Descubiertos (29–40)</div>
     <div class="cupos-grid">
-        @foreach (var cupo in Cupos.Where(c => c.Tipo == "Descubierto"))
+        @foreach (var cupo in Cupos.Where(c => string.Equals(c.Tipo, "Descubierto", StringComparison.OrdinalIgnoreCase)))
         {
             <div class="cupo @cupo.Estado"
                  title="@GetTooltip(cupo)"

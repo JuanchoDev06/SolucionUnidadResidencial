@@ -1,3 +1,6 @@
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
 namespace UnidadResidencialProject.Models
 {
     // ── Shared ────────────────────────────────────────────
@@ -32,6 +35,7 @@ namespace UnidadResidencialProject.Models
         public string Numero { get; set; } = "";
         public string Tipo { get; set; } = "";
         public double Area { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public TorreDto? Torre { get; set; }
     }
 
@@ -110,6 +114,8 @@ namespace UnidadResidencialProject.Models
         public string Numero { get; set; } = "";
         public string Estado { get; set; } = "Disponible"; // Nuevo: Para el Dashboard
         public int? UnidadId { get; set; }
+        public string? Placa { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public ApartamentoDto? Unidad { get; set; }
     }
 
@@ -235,6 +241,7 @@ namespace UnidadResidencialProject.Models
         public string Numero { get; set; } = "";
         public string? Descripcion { get; set; }
         public int? UnidadId { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public ApartamentoDto? Unidad { get; set; }
     }
 

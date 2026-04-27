@@ -171,5 +171,22 @@ namespace UnidadResidencialProject.Services
             var body = await response.Content.ReadAsStringAsync();
             return (false, $"HTTP {(int)response.StatusCode}: {body}");
         }
+
+        // ── Parqueaderos ───────────────────────────────────
+        public async Task<List<ParqueaderoDto>> GetParqueaderosAsync()
+        {
+            await SetAuthHeaderAsync();
+            var result = await _http.GetFromJsonAsync<List<ParqueaderoDto>>("api/Parqueaderos");
+            return result ?? new();
+        }
+
+        public async Task<(bool ok, string? error)> ActualizarParqueaderoAsync(int id, ParqueaderoDto dto)
+        {
+            await SetAuthHeaderAsync();
+            var response = await _http.PutAsJsonAsync($"api/Parqueaderos/{id}", dto);
+            if (response.IsSuccessStatusCode) return (true, null);
+            var body = await response.Content.ReadAsStringAsync();
+            return (false, $"HTTP {(int)response.StatusCode}: {body}");
+        }
     }
 }

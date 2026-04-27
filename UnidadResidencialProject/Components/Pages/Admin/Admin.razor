@@ -81,6 +81,11 @@
                     <AdminCuartosUtil Torres="@_torres"
                                       Apartamentos="@_apartamentos" />
                 }
+                else if (_tabActiva == "parqueaderos")
+                {
+                    <AdminParqueaderos Torres="@_torres"
+                                       Apartamentos="@_apartamentos" />
+                }
             }
         </div>
     </main>
@@ -107,6 +112,7 @@
         new("torres",   "🏢", "Torres & Aptos"),
         new("tipos",    "⚙️", "Tipos Mantenimiento"),
         new("cuartos",  "📦", "Cuartos Útiles"),
+        new("parqueaderos", "🚗", "Parqueaderos"),
     };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
