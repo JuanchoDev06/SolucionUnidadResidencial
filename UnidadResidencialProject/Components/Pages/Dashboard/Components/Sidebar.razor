@@ -93,7 +93,7 @@
         <div class="user-chip">
             <div class="user-avatar">@_inicial</div>
             <div class="user-info">
-                <span class="user-name">@_nombreRol</span>
+                <span class="user-name">@_nombreUsuario</span>
                 <span class="user-role">@_rol</span>
             </div>
             <button class="logout-btn" @onclick="CerrarSesion" title="Cerrar sesión">⏻</button>
@@ -105,17 +105,22 @@
     private bool _esAdmin = false;
     private bool _esVigilante = false;
     private string _rol = "";
-    private string _nombreRol = "";
+    private string _nombreUsuario = "";
     private string _inicial = "?";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
         _rol = await AuthService.GetRolAsync();
+        _nombreUsuario = await AuthService.GetNombreAsync();
+
         _esAdmin = _rol == "Administrador";
         _esVigilante = _rol == "Vigilante";
-        _nombreRol = _esAdmin ? "Administrador" : _esVigilante ? "Vigilante" : "Residente";
-        _inicial = _nombreRol.Length > 0 ? _nombreRol[0].ToString().ToUpper() : "?";
+
+        if (string.IsNullOrEmpty(_nombreUsuario))
+            _nombreUsuario = _esAdmin ? "Administrador" : _esVigilante ? "Vigilante" : "Usuario";
+
+        _inicial = _nombreUsuario.Length > 0 ? _nombreUsuario[0].ToString().ToUpper() : "?";
         StateHasChanged();
     }
 

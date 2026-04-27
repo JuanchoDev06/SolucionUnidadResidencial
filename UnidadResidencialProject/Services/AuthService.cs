@@ -153,5 +153,39 @@ namespace UnidadResidencialProject.Services
             catch { }
             return "";
         }
+
+        public async Task<string> GetNombreAsync()
+        {
+            var token = await GetTokenAsync();
+            if (string.IsNullOrEmpty(token)) return "";
+            try
+            {
+                var parts = token.Split('.');
+                if (parts.Length != 3) return "";
+                var payload = parts[1];
+                payload = payload.Replace('-', '+').Replace('_', '/');
+                switch (payload.Length % 4)
+                {
+                    case 2: payload += "=="; break;
+                    case 3: payload += "="; break;
+                }
+                var bytes = Convert.FromBase64String(payload);
+                var json = System.Text.Encoding.UTF8.GetString(bytes);
+                var doc = JsonDocument.Parse(json);
+
+                string[] claimNames = {
+                    "unique_name", "name", "nombre",
+                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+                };
+
+                foreach (var claim in claimNames)
+                {
+                    if (doc.RootElement.TryGetProperty(claim, out var value))
+                        return value.GetString() ?? "";
+                }
+            }
+            catch { }
+            return "";
+        }
     }
 }
