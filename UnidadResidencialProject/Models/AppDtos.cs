@@ -227,4 +227,21 @@ namespace UnidadResidencialProject.Models
         public TimeSpan HoraFin { get; set; }
         public string Estado { get; set; } = "Pendiente";
     }
+
+    // ── Cuartos Útiles ───────────────────────────────────────
+    public class CuartoUtilDto
+    {
+        public int CuartoUtilId { get; set; }
+        public string Numero { get; set; } = "";
+        public string? Descripcion { get; set; }
+        public int? UnidadId { get; set; }
+        public ApartamentoDto? Unidad { get; set; }
+    }
+
+    public class CuartoUtilCreateDto
+    {
+        public string Numero { get; set; } = "";
+        public string? Descripcion { get; set; }
+        public int? UnidadId { get; set; }
+    }
 }

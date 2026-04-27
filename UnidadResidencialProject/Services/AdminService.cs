@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Headers;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using UnidadResidencialProject.Models;
 
@@ -132,6 +132,41 @@ namespace UnidadResidencialProject.Services
         {
             await SetAuthHeaderAsync();
             var response = await _http.DeleteAsync($"api/TiposMantenimiento/{id}");
+            if (response.IsSuccessStatusCode) return (true, null);
+            var body = await response.Content.ReadAsStringAsync();
+            return (false, $"HTTP {(int)response.StatusCode}: {body}");
+        }
+
+        // ── Cuartos Útiles ─────────────────────────────────
+        public async Task<List<CuartoUtilDto>> GetCuartosUtilAsync()
+        {
+            await SetAuthHeaderAsync();
+            var result = await _http.GetFromJsonAsync<List<CuartoUtilDto>>("api/CuartosUtil");
+            return result ?? new();
+        }
+
+        public async Task<(bool ok, string? error)> CrearCuartoUtilAsync(CuartoUtilCreateDto dto)
+        {
+            await SetAuthHeaderAsync();
+            var response = await _http.PostAsJsonAsync("api/CuartosUtil", dto);
+            if (response.IsSuccessStatusCode) return (true, null);
+            var body = await response.Content.ReadAsStringAsync();
+            return (false, $"HTTP {(int)response.StatusCode}: {body}");
+        }
+
+        public async Task<(bool ok, string? error)> ActualizarCuartoUtilAsync(int id, CuartoUtilDto dto)
+        {
+            await SetAuthHeaderAsync();
+            var response = await _http.PutAsJsonAsync($"api/CuartosUtil/{id}", dto);
+            if (response.IsSuccessStatusCode) return (true, null);
+            var body = await response.Content.ReadAsStringAsync();
+            return (false, $"HTTP {(int)response.StatusCode}: {body}");
+        }
+
+        public async Task<(bool ok, string? error)> EliminarCuartoUtilAsync(int id)
+        {
+            await SetAuthHeaderAsync();
+            var response = await _http.DeleteAsync($"api/CuartosUtil/{id}");
             if (response.IsSuccessStatusCode) return (true, null);
             var body = await response.Content.ReadAsStringAsync();
             return (false, $"HTTP {(int)response.StatusCode}: {body}");

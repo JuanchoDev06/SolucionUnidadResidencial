@@ -1,0 +1,223 @@
+@using UnidadResidencialProject.Models
+@using UnidadResidencialProject.Services
+@inject AdminService AdminService
+
+<div class="admin-panel">
+    <div class="panel-header">
+        <h2 class="panel-title">📦 Gestión de Cuartos Útiles</h2>
+        <button class="btn-primary" @onclick="@(() => _mostrarForm = true)">
+            + Nuevo Cuarto Útil
+        </button>
+    </div>
+
+    @if (_error != null)
+    {
+        <div class="error-msg">@_error</div>
+    }
+
+    <div class="tabla-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th>Asignado a</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in _cuartos)
+                {
+                    <tr>
+                        <td class="td-mono">@c.Numero</td>
+                        <td>@(c.Descripcion ?? "-")</td>
+                        <td>
+                            <span class="estado-tag @(c.UnidadId.HasValue ? "inactivo" : "activo")">
+                                @(c.UnidadId.HasValue ? "Asignado" : "Disponible")
+                            </span>
+                        </td>
+                        <td>
+                            @if (c.UnidadId.HasValue)
+                            {
+                                @($"{c.Unidad?.Torre?.Nombre ?? ""} - {c.Unidad?.Numero ?? ""}")
+                            }
+                            else
+                            {
+                                <span style="color: var(--text3); font-style: italic;">Sin asignar</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                @if (c.UnidadId.HasValue)
+                                {
+                                    <button class="btn-toggle desactivar" title="Desasignar"
+                                            @onclick="() => Desasignar(c)">
+                                        Desasignar
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn-toggle activar" title="Asignar"
+                                            @onclick="() => AbrirAsignar(c)">
+                                        Asignar
+                                    </button>
+                                }
+                                <button class="btn-eliminar" style="margin-left: 8px;"
+                                        @onclick="() => Eliminar(c.CuartoUtilId)">
+                                    🗑
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (_mostrarForm)
+{
+    <div class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 class="modal-title">Nuevo Cuarto Útil</h2>
+                <button class="modal-close" @onclick="CerrarForm">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Número / Identificador</label>
+                    <input class="form-control" type="text" @bind="_nuevoNumero" placeholder="Ej: CU-101" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descripción (Opcional)</label>
+                    <textarea class="form-control" @bind="_nuevaDesc" placeholder="Ej: Sótano 1, al lado del ascensor"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" @onclick="CerrarForm">Cancelar</button>
+                <button class="btn-save" @onclick="CrearCuarto">Guardar</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_mostrarAsignar)
+{
+    <div class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 class="modal-title">Asignar Cuarto @_cuartoAAsignar?.Numero</h2>
+                <button class="modal-close" @onclick="CerrarAsignar">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Torre</label>
+                        <select class="form-control" @onchange="OnTorreChanged">
+                            <option value="0">-- Seleccione Torre --</option>
+                            @foreach (var t in Torres)
+                            {
+                                <option value="@t.TorreId">@t.Nombre</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Apartamento</label>
+                        <select class="form-control" @bind="_unidadIdSeleccionada">
+                            <option value="0">-- Seleccione Apto --</option>
+                            @foreach (var a in ApartamentosFiltrados)
+                            {
+                                <option value="@a.UnidadId">@a.Numero</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" @onclick="CerrarAsignar">Cancelar</button>
+                <button class="btn-save" @onclick="Asignar">Asignar</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public List<TorreDto> Torres { get; set; } = new();
+    [Parameter] public List<ApartamentoDto> Apartamentos { get; set; } = new();
+
+    private List<CuartoUtilDto> _cuartos = new();
+    private bool _mostrarForm = false;
+    private bool _mostrarAsignar = false;
+    private string? _error;
+
+    // Form data
+    private string _nuevoNumero = "";
+    private string _nuevaDesc = "";
+    private CuartoUtilDto? _cuartoAAsignar;
+    private int _torreIdSeleccionada = 0;
+    private int _unidadIdSeleccionada = 0;
+
+    private List<ApartamentoDto> ApartamentosFiltrados =>
+        _torreIdSeleccionada > 0 ? Apartamentos.Where(a => a.TorreId == _torreIdSeleccionada).ToList() : new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarCuartos();
+    }
+
+    private async Task CargarCuartos()
+    {
+        try { _cuartos = await AdminService.GetCuartosUtilAsync(); }
+        catch (Exception ex) { _error = ex.Message; }
+    }
+
+    private void CerrarForm() { _mostrarForm = false; _nuevoNumero = ""; _nuevaDesc = ""; }
+
+    private async Task CrearCuarto()
+    {
+        if (string.IsNullOrWhiteSpace(_nuevoNumero)) return;
+        var dto = new CuartoUtilCreateDto { Numero = _nuevoNumero, Descripcion = _nuevaDesc };
+        var (ok, error) = await AdminService.CrearCuartoUtilAsync(dto);
+        if (ok) { CerrarForm(); await CargarCuartos(); }
+        else _error = error;
+    }
+
+    private void AbrirAsignar(CuartoUtilDto c)
+    {
+        _cuartoAAsignar = c;
+        _mostrarAsignar = true;
+    }
+
+    private void CerrarAsignar() { _mostrarAsignar = false; _torreIdSeleccionada = 0; _unidadIdSeleccionada = 0; }
+
+    private void OnTorreChanged(ChangeEventArgs e)
+    {
+        _torreIdSeleccionada = int.TryParse(e.Value?.ToString(), out var id) ? id : 0;
+        _unidadIdSeleccionada = 0;
+    }
+
+    private async Task Asignar()
+    {
+        if (_cuartoAAsignar == null || _unidadIdSeleccionada <= 0) return;
+        _cuartoAAsignar.UnidadId = _unidadIdSeleccionada;
+        var (ok, error) = await AdminService.ActualizarCuartoUtilAsync(_cuartoAAsignar.CuartoUtilId, _cuartoAAsignar);
+        if (ok) { CerrarAsignar(); await CargarCuartos(); }
+        else _error = error;
+    }
+
+    private async Task Desasignar(CuartoUtilDto c)
+    {
+        c.UnidadId = null;
+        var (ok, error) = await AdminService.ActualizarCuartoUtilAsync(c.CuartoUtilId, c);
+        if (ok) await CargarCuartos();
+        else _error = error;
+    }
+
+    private async Task Eliminar(int id)
+    {
+        var (ok, error) = await AdminService.EliminarCuartoUtilAsync(id);
+        if (ok) await CargarCuartos();
+        else _error = error;
+    }
+}

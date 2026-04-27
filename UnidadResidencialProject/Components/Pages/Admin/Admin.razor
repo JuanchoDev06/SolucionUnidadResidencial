@@ -76,6 +76,11 @@
                     <AdminTiposMantenimiento Tipos="@_tipos"
                                              OnRecargar="@CargarDatos" />
                 }
+                else if (_tabActiva == "cuartos")
+                {
+                    <AdminCuartosUtil Torres="@_torres"
+                                      Apartamentos="@_apartamentos" />
+                }
             }
         </div>
     </main>
@@ -101,6 +106,7 @@
         new("zonas",    "🏊", "Zonas Comunes"),
         new("torres",   "🏢", "Torres & Aptos"),
         new("tipos",    "⚙️", "Tipos Mantenimiento"),
+        new("cuartos",  "📦", "Cuartos Útiles"),
     };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
